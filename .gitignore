@@ -141,3 +141,13 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Project working documents (decisions, implementation plan, phase reports)
+docs/
+
+# Seed corpus (generated locally, see Faza 8)
+corpus.json
+
+# .NET
+backend/**/bin/
+backend/**/obj/
