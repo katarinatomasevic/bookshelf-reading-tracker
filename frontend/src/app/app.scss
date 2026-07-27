@@ -1,0 +1,35 @@
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--p-content-border-color, rgba(128, 128, 128, 0.3));
+}
+
+.app-header__brand {
+  font-weight: 700;
+  font-size: 1.25rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.app-header__nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-header__user {
+  opacity: 0.75;
+}
+
+.app-header__link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--p-primary-color, #6366f1);
+  text-decoration: underline;
+  cursor: pointer;
+}

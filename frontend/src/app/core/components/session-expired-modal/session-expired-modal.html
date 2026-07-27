@@ -1,0 +1,14 @@
+<p-dialog
+  [visible]="authService.sessionExpired()"
+  [modal]="true"
+  [closable]="false"
+  [closeOnEscape]="false"
+  [dismissableMask]="false"
+  header="Session expired"
+  [style]="{ width: '25rem' }"
+>
+  <p>Your session has expired. Please log in again.</p>
+  <div class="session-expired-modal__actions">
+    <p-button label="OK" (onClick)="onAcknowledge()" />
+  </div>
+</p-dialog>
