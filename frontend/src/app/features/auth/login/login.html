@@ -1,0 +1,38 @@
+<div class="auth-page">
+  <form class="auth-card app-card" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <h1>Log in</h1>
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input pInputText id="email" type="email" formControlName="email" autocomplete="email" />
+      @if (form.controls.email.invalid && form.controls.email.touched) {
+        <small class="field-error">Enter a valid email address.</small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <p-password
+        id="password"
+        formControlName="password"
+        [feedback]="false"
+        [toggleMask]="true"
+        autocomplete="current-password"
+      />
+      @if (form.controls.password.invalid && form.controls.password.touched) {
+        <small class="field-error">Password is required.</small>
+      }
+    </div>
+
+    @if (errorMessage()) {
+      <p-message severity="error" [text]="errorMessage()!" />
+    }
+
+    <p-button type="submit" label="Log in" [loading]="submitting()" styleClass="w-full" />
+
+    <p class="auth-switch">
+      Don't have an account?
+      <a routerLink="/register" [queryParams]="returnUrlQueryParams">Register</a>
+    </p>
+  </form>
+</div>

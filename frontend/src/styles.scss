@@ -1,2 +1,40 @@
 /* You can add global styles to this file, and also import other style files */
 @import "primeicons/primeicons.css";
+
+/*
+ * PrimeNG's Aura theme deliberately does NOT set a font (its typography.fontFamily
+ * token is "inherit") — it expects the host app to provide one. Everything below is
+ * the one place that establishes the app's visual baseline; features should reuse
+ * these tokens/classes rather than inventing new spacing or card styles per page.
+ */
+:root {
+  --app-font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  --app-space-1: 0.5rem;
+  --app-space-2: 1rem;
+  --app-space-3: 1.5rem;
+  --app-space-4: 2rem;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--app-font-sans);
+  color: var(--p-content-color);
+  background: var(--p-content-background);
+}
+
+/* Reusable card surface — used by auth forms, profile sections, etc. */
+.app-card {
+  background: var(--p-content-background);
+  color: var(--p-content-color);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-border-radius-lg, 8px);
+  box-shadow: var(--p-overlay-modal-shadow, 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1));
+  padding: var(--app-space-3);
+}

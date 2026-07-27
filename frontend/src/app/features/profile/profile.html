@@ -1,0 +1,61 @@
+<div class="profile-page">
+  <h1>Profile</h1>
+
+  <section class="profile-section app-card">
+    <h2>Display name</h2>
+    <form [formGroup]="displayNameForm" (ngSubmit)="onSaveDisplayName()">
+      <div class="field">
+        <label for="displayName">Display name</label>
+        <input pInputText id="displayName" type="text" formControlName="displayName" />
+        @if (displayNameForm.controls.displayName.invalid && displayNameForm.controls.displayName.touched) {
+          <small class="field-error">Display name is required.</small>
+        }
+      </div>
+
+      @if (displayNameMessage()) {
+        <p-message severity="success" [text]="displayNameMessage()!" />
+      }
+      @if (displayNameError()) {
+        <p-message severity="error" [text]="displayNameError()!" />
+      }
+
+      <p-button type="submit" label="Save display name" [loading]="displayNameSubmitting()" />
+    </form>
+  </section>
+
+  <section class="profile-section app-card">
+    <h2>Change password</h2>
+    <form [formGroup]="passwordForm" (ngSubmit)="onSavePassword()">
+      <div class="field">
+        <label for="currentPassword">Current password</label>
+        <p-password id="currentPassword" formControlName="currentPassword" [feedback]="false" [toggleMask]="true" />
+      </div>
+
+      <div class="field">
+        <label for="newPassword">New password</label>
+        <small class="field-hint">{{ passwordRequirementsHint }}</small>
+        <p-password id="newPassword" formControlName="newPassword" [toggleMask]="true" />
+        @if (passwordForm.controls.newPassword.hasError('pattern') && passwordForm.controls.newPassword.touched) {
+          <small class="field-error">Password doesn't meet the requirements above.</small>
+        }
+      </div>
+
+      <div class="field">
+        <label for="confirmPassword">Confirm new password</label>
+        <p-password id="confirmPassword" formControlName="confirmPassword" [feedback]="false" [toggleMask]="true" />
+        @if (passwordForm.errors?.['passwordsMismatch'] && passwordForm.controls.confirmPassword.touched) {
+          <small class="field-error">Passwords do not match.</small>
+        }
+      </div>
+
+      @if (passwordMessage()) {
+        <p-message severity="success" [text]="passwordMessage()!" />
+      }
+      @if (passwordError()) {
+        <p-message severity="error" [text]="passwordError()!" />
+      }
+
+      <p-button type="submit" label="Save password" [loading]="passwordSubmitting()" />
+    </form>
+  </section>
+</div>

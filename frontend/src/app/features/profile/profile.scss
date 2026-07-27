@@ -1,0 +1,35 @@
+.profile-page {
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.profile-section {
+  margin-bottom: 2rem;
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+
+  input,
+  ::ng-deep .p-password,
+  ::ng-deep .p-password input {
+    width: 100%;
+  }
+}
+
+.field-error {
+  color: var(--p-red-500, #e53935);
+}
+
+.field-hint {
+  color: var(--p-text-muted-color, #71717a);
+}

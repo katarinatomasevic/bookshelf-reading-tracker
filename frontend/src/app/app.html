@@ -1,7 +1,18 @@
-<main class="landing">
-  <h1>Bookshelf</h1>
-  <p>Foundation is up. Features arrive in later phases.</p>
-  <p-button label="PrimeNG works" icon="pi pi-check" />
-</main>
+<header class="app-header">
+  <a routerLink="/" class="app-header__brand">Bookshelf</a>
+
+  <nav class="app-header__nav">
+    @if (authService.isLoggedIn()) {
+      <span class="app-header__user">{{ authService.currentUser()?.displayName }}</span>
+      <a routerLink="/profile">Profile</a>
+      <button type="button" class="app-header__link-button" (click)="onLogout()">Log out</button>
+    } @else {
+      <a routerLink="/login">Log in</a>
+      <a routerLink="/register">Register</a>
+    }
+  </nav>
+</header>
 
 <router-outlet />
+
+<app-session-expired-modal />

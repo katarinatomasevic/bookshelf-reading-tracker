@@ -1,0 +1,49 @@
+<div class="auth-page">
+  <form class="auth-card app-card" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <h1>Register</h1>
+
+    <div class="field">
+      <label for="displayName">Display name</label>
+      <input pInputText id="displayName" type="text" formControlName="displayName" autocomplete="name" />
+      @if (form.controls.displayName.invalid && form.controls.displayName.touched) {
+        <small class="field-error">Display name is required.</small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input pInputText id="email" type="email" formControlName="email" autocomplete="email" />
+      @if (form.controls.email.invalid && form.controls.email.touched) {
+        <small class="field-error">Enter a valid email address.</small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <small class="field-hint">{{ passwordRequirementsHint }}</small>
+      <p-password
+        id="password"
+        formControlName="password"
+        [toggleMask]="true"
+        autocomplete="new-password"
+      />
+      @if (form.controls.password.hasError('required') && form.controls.password.touched) {
+        <small class="field-error">Password is required.</small>
+      }
+      @if (form.controls.password.hasError('pattern') && form.controls.password.touched) {
+        <small class="field-error">Password doesn't meet the requirements above.</small>
+      }
+    </div>
+
+    @if (errorMessage()) {
+      <p-message severity="error" [text]="errorMessage()!" />
+    }
+
+    <p-button type="submit" label="Register" [loading]="submitting()" styleClass="w-full" />
+
+    <p class="auth-switch">
+      Already have an account?
+      <a routerLink="/login" [queryParams]="returnUrlQueryParams">Log in</a>
+    </p>
+  </form>
+</div>
