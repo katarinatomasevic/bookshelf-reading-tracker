@@ -1,0 +1,46 @@
+<main class="search-page">
+  <h1>Search books</h1>
+
+  <form class="search-page__bar" (ngSubmit)="onSearch()">
+    <input
+      pInputText
+      type="text"
+      name="query"
+      placeholder="Search by title, author..."
+      [(ngModel)]="queryInput"
+    />
+    <p-button type="submit" label="Search" icon="pi pi-search" />
+  </form>
+
+  @if (error(); as message) {
+    <p class="search-page__error">{{ message }}</p>
+  }
+
+  @if (loading()) {
+    <div class="search-page__spinner">
+      <p-progress-spinner styleClass="search-page__spinner-icon" />
+    </div>
+  } @else if (!bookService.hasSearched()) {
+    <p class="search-page__empty">Search for a book to get started.</p>
+  } @else if (bookService.results().length === 0) {
+    <p class="search-page__empty">No books found for this search.</p>
+  } @else {
+    <div class="search-page__grid">
+      @for (book of bookService.results(); track book.openLibraryId) {
+        <app-book-card [book]="book" (select)="onSelectBook($event)" />
+      }
+    </div>
+
+    @if (bookService.hasMore()) {
+      <div class="search-page__load-more">
+        <p-button
+          label="Load more"
+          severity="secondary"
+          [outlined]="true"
+          [loading]="loadingMore()"
+          (onClick)="onLoadMore()"
+        />
+      </div>
+    }
+  }
+</main>

@@ -1,0 +1,16 @@
+<article class="app-card book-card" (click)="onSelect()" role="button" tabindex="0" (keydown.enter)="onSelect()">
+  @if (coverUrl(); as url) {
+    <img class="book-card__cover" [src]="url" [alt]="book().title" />
+  } @else {
+    <div class="book-card__cover book-card__cover--placeholder">
+      <i class="pi pi-book"></i>
+    </div>
+  }
+
+  <div class="book-card__body">
+    <div class="book-card__title">{{ book().title }}</div>
+    @if (book().author; as author) {
+      <div class="book-card__author">{{ author }}</div>
+    }
+  </div>
+</article>

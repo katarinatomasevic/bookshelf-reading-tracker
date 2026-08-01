@@ -5,7 +5,12 @@ import { guestGuard } from './core/guards/guest.guard';
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./features/home/home').then((m) => m.Home),
+    loadComponent: () => import('./features/books/search/search').then((m) => m.Search),
+  },
+  {
+    path: 'books/:id',
+    loadComponent: () =>
+      import('./features/books/book-details/book-details').then((m) => m.BookDetailsPage),
   },
   {
     path: 'login',

@@ -5,6 +5,7 @@ import { ParamMap } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthResponse, LoginRequest, RegisterRequest } from '../models/auth.model';
+import { SessionResetService } from './session-reset.service';
 
 const STORAGE_KEY = 'bookshelf_auth';
 
@@ -12,6 +13,7 @@ const STORAGE_KEY = 'bookshelf_auth';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly sessionReset = inject(SessionResetService);
 
   private readonly authState = signal<AuthResponse | null>(this.readStoredAuth());
 
@@ -96,11 +98,16 @@ export class AuthService {
   private setAuth(response: AuthResponse): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(response));
     this.authState.set(response);
+    this.sessionReset.clearPending();
   }
 
+  /** Single funnel for every way a session ends: explicit logout, a 401, or an
+   *  already-expired token at startup. Feature state is dropped here so no path
+   *  can leave one user's view of the app on screen for the next one. */
   private clearAuth(): void {
     localStorage.removeItem(STORAGE_KEY);
     this.authState.set(null);
+    this.sessionReset.resetAll();
   }
 
   private readStoredAuth(): AuthResponse | null {

@@ -21,15 +21,30 @@
 }
 
 .app-header__user {
-  opacity: 0.75;
+  opacity: 0.85;
 }
 
-.app-header__link-button {
+/* Trigger for the profile dropdown: reads as a label with an icon, not as a
+   form button, so it sits naturally among the header's navigation links. */
+.app-header__profile {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
   background: none;
   border: none;
-  padding: 0;
+  border-radius: var(--p-border-radius-md, 6px);
   font: inherit;
-  color: var(--p-primary-color, #6366f1);
-  text-decoration: underline;
+  color: inherit;
   cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--p-content-hover-background, rgba(128, 128, 128, 0.12));
+  }
+}
+
+.app-header__profile-caret {
+  font-size: 0.75rem;
+  opacity: 0.7;
 }

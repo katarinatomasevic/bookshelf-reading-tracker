@@ -1,0 +1,53 @@
+<main class="book-details">
+  @if (loading()) {
+    <div class="book-details__spinner">
+      <p-progress-spinner />
+    </div>
+  } @else if (error(); as message) {
+    <p class="book-details__error">{{ message }}</p>
+    <a routerLink="/">Back to search</a>
+  } @else if (book(); as details) {
+    <div class="app-card book-details__card">
+      @if (coverUrl(); as url) {
+        <img class="book-details__cover" [src]="url" [alt]="details.title" />
+      } @else {
+        <div class="book-details__cover book-details__cover--placeholder">
+          <i class="pi pi-book"></i>
+        </div>
+      }
+
+      <div class="book-details__content">
+        <h1>{{ details.title }}</h1>
+        @if (details.author) {
+          <p class="book-details__author">{{ details.author }}</p>
+        }
+
+        @if (details.averageRating !== null) {
+          <p class="book-details__rating">
+            <i class="pi pi-star-fill"></i>
+            {{ details.averageRating!.toFixed(1) }}
+            <span class="book-details__rating-count">({{ details.ratingsCount }} ratings on Open Library)</span>
+          </p>
+        } @else {
+          <p class="book-details__rating book-details__rating--none">No Open Library ratings yet.</p>
+        }
+
+        @if (details.subjects && details.subjects.length > 0) {
+          <div class="book-details__subjects">
+            @for (subject of details.subjects; track subject) {
+              <span class="book-details__subject-tag">{{ subject }}</span>
+            }
+          </div>
+        } @else {
+          <p class="book-details__placeholder">No genres listed for this book yet.</p>
+        }
+
+        @if (details.description) {
+          <p class="book-details__description">{{ details.description }}</p>
+        } @else {
+          <p class="book-details__placeholder">No description available for this book yet.</p>
+        }
+      </div>
+    </div>
+  }
+</main>

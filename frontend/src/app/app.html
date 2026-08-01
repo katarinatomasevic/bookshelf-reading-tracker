@@ -2,10 +2,21 @@
   <a routerLink="/" class="app-header__brand">Bookshelf</a>
 
   <nav class="app-header__nav">
+    <a routerLink="/">Home</a>
+
     @if (authService.isLoggedIn()) {
-      <span class="app-header__user">{{ authService.currentUser()?.displayName }}</span>
-      <a routerLink="/profile">Profile</a>
-      <button type="button" class="app-header__link-button" (click)="onLogout()">Log out</button>
+      <button
+        type="button"
+        class="app-header__profile"
+        aria-haspopup="true"
+        aria-label="Profile menu"
+        (click)="profileMenu.toggle($event)"
+      >
+        <i class="pi pi-user"></i>
+        <span class="app-header__user">{{ authService.currentUser()?.displayName }}</span>
+        <i class="pi pi-angle-down app-header__profile-caret"></i>
+      </button>
+      <p-menu #profileMenu [model]="profileMenuItems" [popup]="true" />
     } @else {
       <a routerLink="/login">Log in</a>
       <a routerLink="/register">Register</a>

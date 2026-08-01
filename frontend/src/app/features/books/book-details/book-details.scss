@@ -1,0 +1,91 @@
+.book-details {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--app-space-3);
+}
+
+.book-details__spinner {
+  display: flex;
+  justify-content: center;
+  padding: var(--app-space-4) 0;
+}
+
+.book-details__error {
+  color: var(--p-red-500, #ef4444);
+}
+
+.book-details__card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--app-space-3);
+}
+
+.book-details__cover {
+  flex: 0 0 220px;
+  width: 220px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--p-border-radius-md, 6px);
+  background: var(--p-content-border-color, #ddd);
+}
+
+.book-details__cover--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  opacity: 0.5;
+}
+
+.book-details__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-1);
+  min-width: 0;
+}
+
+.book-details__author {
+  opacity: 0.8;
+  font-size: 1.1rem;
+}
+
+.book-details__rating {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-1);
+}
+
+.book-details__rating--none {
+  opacity: 0.6;
+}
+
+.book-details__rating-count {
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.book-details__subjects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: var(--app-space-1) 0;
+}
+
+.book-details__subject-tag {
+  background: var(--p-content-border-color, #eee);
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.book-details__description {
+  white-space: pre-line;
+  line-height: 1.5;
+}
+
+/* Shown when Open Library has no description or subjects for a book — the gap is
+   in the upstream data, so the page states it plainly instead of rendering nothing. */
+.book-details__placeholder {
+  opacity: 0.6;
+  font-style: italic;
+}

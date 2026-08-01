@@ -1,5 +1,7 @@
 using Bookshelf.Application.Auth;
+using Bookshelf.Application.Books;
 using Bookshelf.Infrastructure.Auth;
+using Bookshelf.Infrastructure.ExternalServices.OpenLibrary;
 using Bookshelf.Infrastructure.Persistence;
 using Bookshelf.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +21,18 @@ public static class DependencyInjection
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+
+        var openLibraryBaseUrl = configuration["OpenLibrary:BaseUrl"]
+            ?? throw new InvalidOperationException("OpenLibrary:BaseUrl is not configured.");
+        var openLibraryUserAgent = configuration["OpenLibrary:UserAgent"]
+            ?? throw new InvalidOperationException("OpenLibrary:UserAgent is not configured.");
+
+        services.AddHttpClient<IOpenLibraryClient, OpenLibraryClient>(client =>
+        {
+            client.BaseAddress = new Uri(openLibraryBaseUrl.TrimEnd('/') + "/");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(openLibraryUserAgent);
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
 
         return services;
     }
