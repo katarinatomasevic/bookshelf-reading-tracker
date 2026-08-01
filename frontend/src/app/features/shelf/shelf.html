@@ -1,0 +1,79 @@
+<main class="shelf-page">
+  <header class="shelf-page__header">
+    <h1>My shelf</h1>
+    <p-button
+      label="Add a book manually"
+      icon="pi pi-plus"
+      severity="secondary"
+      [outlined]="true"
+      size="small"
+      (onClick)="showManualDialog.set(true)"
+    />
+  </header>
+
+  @if (error(); as message) {
+    <p class="shelf-page__error">{{ message }}</p>
+  }
+
+  @if (loading() && !shelfService.loaded()) {
+    <div class="shelf-page__spinner">
+      <p-progress-spinner />
+    </div>
+  } @else if (isEmpty()) {
+    <div class="shelf-page__empty">
+      <p>Your shelf is empty.</p>
+      <a routerLink="/">Search for a book to add your first one</a>
+      <span class="shelf-page__empty-or">
+        or <button type="button" class="shelf-page__link" (click)="showManualDialog.set(true)">add one manually</button>.
+      </span>
+    </div>
+  } @else {
+    <p-tabs [value]="activeTab()" (valueChange)="activeTab.set($any($event))">
+      <p-tablist>
+        <p-tab [value]="0">Want to read ({{ wantToRead().length }})</p-tab>
+        <p-tab [value]="1">Reading ({{ reading().length }})</p-tab>
+        <p-tab [value]="2">Read ({{ read().length }})</p-tab>
+      </p-tablist>
+
+      <p-tabpanels>
+        <p-tabpanel [value]="0">
+          @if (wantToRead().length === 0) {
+            <p class="shelf-page__empty-tab">Nothing here yet.</p>
+          } @else {
+            <div class="shelf-page__grid">
+              @for (item of wantToRead(); track item.id) {
+                <app-book-card [book]="item" (select)="onSelect(item)" />
+              }
+            </div>
+          }
+        </p-tabpanel>
+
+        <p-tabpanel [value]="1">
+          @if (reading().length === 0) {
+            <p class="shelf-page__empty-tab">Nothing here yet.</p>
+          } @else {
+            <div class="shelf-page__grid">
+              @for (item of reading(); track item.id) {
+                <app-book-card [book]="item" (select)="onSelect(item)" />
+              }
+            </div>
+          }
+        </p-tabpanel>
+
+        <p-tabpanel [value]="2">
+          @if (read().length === 0) {
+            <p class="shelf-page__empty-tab">Nothing here yet.</p>
+          } @else {
+            <div class="shelf-page__grid">
+              @for (item of read(); track item.id) {
+                <app-book-card [book]="item" (select)="onSelect(item)" />
+              }
+            </div>
+          }
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+  }
+
+  <app-manual-book-dialog [(visible)]="showManualDialog" (created)="onManualCreated($event)" />
+</main>

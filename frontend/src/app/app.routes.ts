@@ -8,6 +8,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/books/search/search').then((m) => m.Search),
   },
   {
+    path: 'shelf',
+    loadComponent: () => import('./features/shelf/shelf').then((m) => m.Shelf),
+    canActivate: [authGuard],
+  },
+  {
     path: 'books/:id',
     loadComponent: () =>
       import('./features/books/book-details/book-details').then((m) => m.BookDetailsPage),

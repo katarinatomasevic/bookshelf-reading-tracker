@@ -1,11 +1,17 @@
 <article class="app-card book-card" (click)="onSelect()" role="button" tabindex="0" (keydown.enter)="onSelect()">
-  @if (coverUrl(); as url) {
-    <img class="book-card__cover" [src]="url" [alt]="book().title" />
-  } @else {
-    <div class="book-card__cover book-card__cover--placeholder">
-      <i class="pi pi-book"></i>
-    </div>
-  }
+  <div class="book-card__cover-wrapper">
+    @if (coverUrl(); as url) {
+      <img class="book-card__cover" [src]="url" [alt]="book().title" />
+    } @else {
+      <div class="book-card__cover book-card__cover--placeholder">
+        <i class="pi pi-book"></i>
+      </div>
+    }
+
+    @if (isOnShelf()) {
+      <span class="book-card__badge"><i class="pi pi-check"></i> On shelf</span>
+    }
+  </div>
 
   <div class="book-card__body">
     <div class="book-card__title">{{ book().title }}</div>
@@ -13,4 +19,15 @@
       <div class="book-card__author">{{ author }}</div>
     }
   </div>
+
+  @if (showAddButton()) {
+    <!-- The card itself opens the details page, so the button must not bubble into it. -->
+    <div class="book-card__actions" (click)="$event.stopPropagation()">
+      <app-add-to-shelf-button
+        [isOnShelf]="isOnShelf()"
+        [pending]="addPending()"
+        (add)="addToShelf.emit()"
+      />
+    </div>
+  }
 </article>

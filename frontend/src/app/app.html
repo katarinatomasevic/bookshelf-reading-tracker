@@ -5,6 +5,8 @@
     <a routerLink="/">Home</a>
 
     @if (authService.isLoggedIn()) {
+      <a routerLink="/shelf">My shelf</a>
+
       <button
         type="button"
         class="app-header__profile"

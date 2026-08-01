@@ -75,6 +75,14 @@ export class BookService {
     );
   }
 
+  /** Keeps already-loaded results honest after an add, without re-running the search. */
+  markOnShelf(openLibraryId: string): void {
+    this.results.update((current) =>
+      current.map((book) => (book.openLibraryId === openLibraryId ? { ...book, isOnShelf: true } : book)),
+    );
+    this.persistSearchState();
+  }
+
   getById(id: string): Observable<BookDetails> {
     return this.http.get<BookDetails>(`${environment.apiUrl}/books/${id}`);
   }

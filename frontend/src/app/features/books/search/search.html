@@ -16,6 +16,10 @@
     <p class="search-page__error">{{ message }}</p>
   }
 
+  @if (addError(); as message) {
+    <p class="search-page__error">{{ message }}</p>
+  }
+
   @if (loading()) {
     <div class="search-page__spinner">
       <p-progress-spinner styleClass="search-page__spinner-icon" />
@@ -27,7 +31,14 @@
   } @else {
     <div class="search-page__grid">
       @for (book of bookService.results(); track book.openLibraryId) {
-        <app-book-card [book]="book" (select)="onSelectBook($event)" />
+        <app-book-card
+          [book]="book"
+          [showAddButton]="true"
+          [isOnShelf]="book.isOnShelf"
+          [addPending]="pendingAdd() === book.openLibraryId"
+          (select)="onSelectBook(book.openLibraryId)"
+          (addToShelf)="onAddToShelf(book)"
+        />
       }
     </div>
 

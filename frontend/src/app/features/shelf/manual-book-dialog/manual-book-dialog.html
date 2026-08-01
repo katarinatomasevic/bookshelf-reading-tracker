@@ -1,0 +1,77 @@
+<p-dialog
+  header="Add a book manually"
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '34rem' }"
+  [breakpoints]="{ '640px': '95vw' }"
+  (onHide)="onHide()"
+>
+  <form class="manual-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <p class="manual-form__intro">
+      For books Open Library doesn't have. It goes straight to your shelf.
+    </p>
+
+    <div class="manual-form__field">
+      <label for="manual-title">Title</label>
+      <input pInputText id="manual-title" type="text" formControlName="title" />
+      @if (form.controls.title.invalid && form.controls.title.touched) {
+        <small class="manual-form__error">Title is required.</small>
+      }
+    </div>
+
+    <div class="manual-form__row">
+      <div class="manual-form__field">
+        <label for="manual-author">Author</label>
+        <input pInputText id="manual-author" type="text" formControlName="author" />
+      </div>
+
+      <div class="manual-form__field manual-form__field--narrow">
+        <label for="manual-pages">Pages</label>
+        <input pInputText id="manual-pages" type="number" formControlName="pageCount" min="1" />
+        @if (form.controls.pageCount.invalid && form.controls.pageCount.touched) {
+          <small class="manual-form__error">Must be a positive number.</small>
+        }
+      </div>
+    </div>
+
+    <div class="manual-form__field">
+      <label for="manual-subjects">Genres</label>
+      <input
+        pInputText
+        id="manual-subjects"
+        type="text"
+        formControlName="subjects"
+        placeholder="fantasy, adventure"
+      />
+      <small class="manual-form__hint">Separate with commas. Up to 15 are kept.</small>
+    </div>
+
+    <div class="manual-form__field">
+      <label for="manual-description">Description</label>
+      <textarea
+        pTextarea
+        id="manual-description"
+        rows="4"
+        formControlName="description"
+        class="manual-form__textarea"
+      ></textarea>
+    </div>
+
+    @if (errorMessage()) {
+      <p-message severity="error" [text]="errorMessage()!" />
+    }
+
+    <div class="manual-form__actions">
+      <p-button
+        type="button"
+        label="Cancel"
+        severity="secondary"
+        [text]="true"
+        (onClick)="onCancel()"
+      />
+      <p-button type="submit" label="Add to shelf" icon="pi pi-plus" [loading]="submitting()" />
+    </div>
+  </form>
+</p-dialog>

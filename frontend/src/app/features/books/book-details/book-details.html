@@ -47,6 +47,18 @@
         } @else {
           <p class="book-details__placeholder">No description available for this book yet.</p>
         }
+
+        <div class="book-details__actions">
+          <app-add-to-shelf-button
+            [isOnShelf]="details.isOnShelf"
+            [pending]="addPending()"
+            (add)="onAddToShelf(details)"
+          />
+        </div>
+
+        @if (addError(); as message) {
+          <p class="book-details__error">{{ message }}</p>
+        }
       </div>
     </div>
   }

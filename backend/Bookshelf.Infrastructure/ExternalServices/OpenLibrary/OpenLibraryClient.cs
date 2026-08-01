@@ -23,6 +23,16 @@ public class OpenLibraryClient(HttpClient httpClient) : IOpenLibraryClient
         return new BookSearchPageResult(items, safePage, hasMore);
     }
 
+    public async Task<BookSearchResult?> GetByWorkKeyAsync(string workKey, CancellationToken cancellationToken)
+    {
+        var uri = $"search.json?q=key:{Uri.EscapeDataString($"/works/{workKey}")}&limit=1" +
+                  "&fields=key,title,author_name,first_publish_year,cover_i,number_of_pages_median,subject,isbn";
+
+        var response = await GetJsonAsync<OpenLibrarySearchResponse>(uri, cancellationToken);
+
+        return response.Docs?.FirstOrDefault()?.ToBookSearchResult();
+    }
+
     public async Task<OpenLibraryWorkData> GetWorkAsync(string workKey, CancellationToken cancellationToken)
     {
         var response = await GetJsonAsync<OpenLibraryWorkResponse>($"works/{workKey}.json", cancellationToken);

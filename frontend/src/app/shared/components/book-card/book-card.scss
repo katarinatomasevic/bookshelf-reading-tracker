@@ -20,6 +20,29 @@
   gap: var(--app-space-1);
 }
 
+.book-card__cover-wrapper {
+  position: relative;
+}
+
+.book-card__badge {
+  position: absolute;
+  top: var(--app-space-1);
+  right: var(--app-space-1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--p-border-radius-sm, 4px);
+  font-size: 0.75rem;
+  background: var(--p-primary-color, #10b981);
+  color: var(--p-primary-contrast-color, #fff);
+}
+
+.book-card__actions {
+  display: flex;
+  cursor: default;
+}
+
 .book-card__cover {
   width: 100%;
   aspect-ratio: 2 / 3;
