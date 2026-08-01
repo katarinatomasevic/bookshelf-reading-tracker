@@ -12,4 +12,20 @@ public static class ClaimsPrincipalExtensions
 
         return Guid.Parse(value);
     }
+
+    /// <summary>
+    /// For endpoints that are public but behave differently for a logged-in user. Authentication
+    /// still validates the token; an absent or unusable one simply means "guest" instead of 401.
+    /// </summary>
+    public static Guid? GetUserIdOrNull(this ClaimsPrincipal user)
+    {
+        if (user.Identity?.IsAuthenticated != true)
+        {
+            return null;
+        }
+
+        var value = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirstValue("sub");
+
+        return Guid.TryParse(value, out var userId) ? userId : null;
+    }
 }

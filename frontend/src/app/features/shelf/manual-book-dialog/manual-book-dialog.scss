@@ -1,0 +1,73 @@
+.manual-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+}
+
+.manual-form__intro {
+  margin: 0;
+  color: var(--p-text-muted-color, #71717a);
+  font-size: 0.9rem;
+}
+
+/* The label/field spacing the auth pages define locally; kept scoped here rather than
+   promoted to styles.scss so no already-approved page changes as a side effect. */
+.manual-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 0;
+
+  label {
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+
+  input {
+    width: 100%;
+  }
+}
+
+.manual-form__row {
+  display: flex;
+  gap: var(--app-space-2);
+
+  .manual-form__field {
+    flex: 1;
+  }
+}
+
+.manual-form__field--narrow {
+  flex: 0 0 7rem !important;
+}
+
+.manual-form__textarea {
+  width: 100%;
+  font: inherit;
+  resize: vertical;
+}
+
+.manual-form__hint {
+  color: var(--p-text-muted-color, #71717a);
+}
+
+.manual-form__error {
+  color: var(--p-red-500, #e53935);
+}
+
+.manual-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--app-space-1);
+  margin-top: var(--app-space-1);
+}
+
+@media (max-width: 480px) {
+  .manual-form__row {
+    flex-direction: column;
+  }
+
+  .manual-form__field--narrow {
+    flex: 1 !important;
+  }
+}

@@ -6,6 +6,8 @@ import { ButtonModule } from 'primeng/button';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BookService } from '../book.service';
 import { BookCard } from '../../../shared/components/book-card/book-card';
+import { ShelfService } from '../../shelf/shelf.service';
+import { BookSearchResult } from '../../../core/models/book.model';
 
 @Component({
   selector: 'app-search',
@@ -15,6 +17,7 @@ import { BookCard } from '../../../shared/components/book-card/book-card';
 })
 export class Search {
   protected readonly bookService = inject(BookService);
+  private readonly shelfService = inject(ShelfService);
   private readonly router = inject(Router);
 
   protected queryInput = this.bookService.lastQuery();
@@ -22,6 +25,10 @@ export class Search {
   protected readonly loading = signal(false);
   protected readonly loadingMore = signal(false);
   protected readonly error = signal<string | null>(null);
+
+  /** Open Library id of the book currently being added, so only its own button spins. */
+  protected readonly pendingAdd = signal<string | null>(null);
+  protected readonly addError = signal<string | null>(null);
 
   constructor() {
     // Logging out clears the shared search state while this page may still be open;
@@ -67,5 +74,29 @@ export class Search {
 
   onSelectBook(openLibraryId: string): void {
     this.router.navigate(['/books', openLibraryId]);
+  }
+
+  /** Page count and ISBN travel with the request: the details call the backend makes when it
+   *  first stores a book returns neither, and later phases need the page count. */
+  onAddToShelf(book: BookSearchResult): void {
+    this.pendingAdd.set(book.openLibraryId);
+    this.addError.set(null);
+
+    this.shelfService
+      .addToShelf({
+        openLibraryId: book.openLibraryId,
+        pageCount: book.pageCount,
+        isbn: book.isbn,
+      })
+      .subscribe({
+        next: () => {
+          this.pendingAdd.set(null);
+          this.bookService.markOnShelf(book.openLibraryId);
+        },
+        error: () => {
+          this.pendingAdd.set(null);
+          this.addError.set('Could not add the book to your shelf. Please try again.');
+        },
+      });
   }
 }

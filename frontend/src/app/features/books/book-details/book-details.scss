@@ -78,6 +78,11 @@
   font-size: 0.8rem;
 }
 
+.book-details__actions {
+  display: flex;
+  margin-top: var(--app-space-2);
+}
+
 .book-details__description {
   white-space: pre-line;
   line-height: 1.5;

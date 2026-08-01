@@ -1,0 +1,9 @@
+<p-button
+  [label]="label()"
+  [icon]="icon()"
+  [loading]="pending()"
+  [disabled]="isLoggedIn() && isOnShelf()"
+  [outlined]="isOnShelf()"
+  size="small"
+  (onClick)="onClick()"
+/>
