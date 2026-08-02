@@ -2,7 +2,12 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AddToShelfRequest, ManualBookRequest, ShelfItem } from '../../core/models/shelf.model';
+import {
+  AddToShelfRequest,
+  ManualBookRequest,
+  ShelfItem,
+  UpdateShelfItemRequest,
+} from '../../core/models/shelf.model';
 import { SessionResetService } from '../../core/services/session-reset.service';
 
 @Injectable({ providedIn: 'root' })
@@ -43,6 +48,21 @@ export class ShelfService {
     return this.http
       .post<ShelfItem>(`${environment.apiUrl}/books/manual`, request)
       .pipe(tap((item) => this.upsert(item)));
+  }
+
+  /** The response carries the saved entry, so the shelf updates without re-fetching it. */
+  update(userBookId: string, request: UpdateShelfItemRequest): Observable<ShelfItem> {
+    return this.http
+      .patch<ShelfItem>(`${environment.apiUrl}/shelf/${userBookId}`, request)
+      .pipe(tap((item) => this.upsert(item)));
+  }
+
+  remove(userBookId: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/shelf/${userBookId}`).pipe(
+      tap(() =>
+        this.items.update((current) => current.filter((item) => item.id !== userBookId)),
+      ),
+    );
   }
 
   /** Adding is idempotent server-side, so the same entry can come back twice. */

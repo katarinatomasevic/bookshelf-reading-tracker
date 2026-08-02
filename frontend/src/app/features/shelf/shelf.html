@@ -28,6 +28,27 @@
       </span>
     </div>
   } @else {
+    <div class="shelf-page__toolbar">
+      <input
+        pInputText
+        type="search"
+        class="shelf-page__search"
+        placeholder="Search by title, author or genre…"
+        aria-label="Search your shelf"
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
+      />
+
+      <p-select
+        [ngModel]="sort()"
+        (ngModelChange)="sort.set($event)"
+        [options]="sortOptions"
+        optionLabel="label"
+        optionValue="value"
+        ariaLabel="Sort your shelf"
+      />
+    </div>
+
     <p-tabs [value]="activeTab()" (valueChange)="activeTab.set($any($event))">
       <p-tablist>
         <p-tab [value]="0">Want to read ({{ wantToRead().length }})</p-tab>
@@ -37,43 +58,54 @@
 
       <p-tabpanels>
         <p-tabpanel [value]="0">
-          @if (wantToRead().length === 0) {
-            <p class="shelf-page__empty-tab">Nothing here yet.</p>
-          } @else {
-            <div class="shelf-page__grid">
-              @for (item of wantToRead(); track item.id) {
-                <app-book-card [book]="item" (select)="onSelect(item)" />
-              }
-            </div>
-          }
+          <ng-container *ngTemplateOutlet="panel; context: { $implicit: wantToRead() }" />
         </p-tabpanel>
 
         <p-tabpanel [value]="1">
-          @if (reading().length === 0) {
-            <p class="shelf-page__empty-tab">Nothing here yet.</p>
-          } @else {
-            <div class="shelf-page__grid">
-              @for (item of reading(); track item.id) {
-                <app-book-card [book]="item" (select)="onSelect(item)" />
-              }
-            </div>
-          }
+          <ng-container *ngTemplateOutlet="panel; context: { $implicit: reading() }" />
         </p-tabpanel>
 
         <p-tabpanel [value]="2">
-          @if (read().length === 0) {
-            <p class="shelf-page__empty-tab">Nothing here yet.</p>
-          } @else {
-            <div class="shelf-page__grid">
-              @for (item of read(); track item.id) {
-                <app-book-card [book]="item" (select)="onSelect(item)" />
-              }
-            </div>
-          }
+          <ng-container *ngTemplateOutlet="panel; context: { $implicit: read() }" />
         </p-tabpanel>
       </p-tabpanels>
     </p-tabs>
   }
 
   <app-manual-book-dialog [(visible)]="showManualDialog" (created)="onManualCreated($event)" />
+
+  <app-book-detail-modal
+    [item]="selectedItem()"
+    [(visible)]="showDetailModal"
+    (removed)="onRemoved()"
+  />
 </main>
+
+<!-- One body for all three tabs: they differ only in which slice of the shelf they render. -->
+<ng-template #panel let-items>
+  @if (items.length === 0) {
+    @if (isSearching()) {
+      <p class="shelf-page__empty-tab">
+        No matches in this tab.
+        @if (hitsInOtherTabs(); as others) {
+          @if (others.length > 0) {
+            <span>
+              Found in:
+              @for (tab of others; track tab.label) {
+                {{ tab.label }} ({{ tab.count }}){{ $last ? '' : ', ' }}
+              }
+            </span>
+          }
+        }
+      </p>
+    } @else {
+      <p class="shelf-page__empty-tab">Nothing here yet.</p>
+    }
+  } @else {
+    <div class="shelf-page__grid">
+      @for (item of items; track item.id) {
+        <app-book-card [book]="item" [rating]="item.rating" (select)="onSelect(item)" />
+      }
+    </div>
+  }
+</ng-template>
