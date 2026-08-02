@@ -1,0 +1,149 @@
+<p-dialog
+  [visible]="visible()"
+  [modal]="true"
+  [closable]="false"
+  [draggable]="false"
+  maskStyleClass="shelf-modal-mask"
+  [style]="{ width: '42rem' }"
+  [breakpoints]="{ '768px': '95vw' }"
+>
+  <ng-template #header>
+    <div class="shelf-modal__header">
+      <span class="shelf-modal__header-title">{{ item()?.title }}</span>
+      <p-button
+        type="button"
+        icon="pi pi-times"
+        severity="secondary"
+        [text]="true"
+        [rounded]="true"
+        ariaLabel="Close"
+        (onClick)="requestClose()"
+      />
+    </div>
+  </ng-template>
+
+  @if (item(); as item) {
+    <form class="shelf-modal" [formGroup]="form" (ngSubmit)="onSave()">
+      <div class="shelf-modal__book">
+        @if (coverUrl(item); as url) {
+          <img class="shelf-modal__cover" [src]="url" [alt]="item.title" />
+        } @else {
+          <div class="shelf-modal__cover shelf-modal__cover--placeholder">
+            <i class="pi pi-book"></i>
+          </div>
+        }
+
+        <div class="shelf-modal__meta">
+          @if (item.author; as author) {
+            <p class="shelf-modal__author">{{ author }}</p>
+          }
+
+          @if (canEditPageCount(item)) {
+            <div class="shelf-modal__field shelf-modal__field--narrow">
+              <label for="modal-pages">Pages</label>
+              <input pInputText id="modal-pages" type="number" formControlName="pageCount" min="1" />
+              <small class="shelf-modal__hint">
+                Open Library has no page count for this book. Adding one enables reading progress.
+              </small>
+            </div>
+          } @else {
+            <p class="shelf-modal__pages">{{ item.pageCount }} pages</p>
+          }
+
+          <a class="shelf-modal__details-link" [routerLink]="detailsLink(item)">
+            View book details <i class="pi pi-arrow-up-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="shelf-modal__row">
+        <div class="shelf-modal__field">
+          <label for="modal-status">Status</label>
+          <p-select
+            inputId="modal-status"
+            formControlName="status"
+            [options]="statusOptions"
+            optionLabel="label"
+            optionValue="value"
+            appendTo="body"
+          />
+        </div>
+
+        <div class="shelf-modal__field">
+          <label id="modal-rating-label">Your rating</label>
+          <div class="shelf-modal__rating">
+            <p-rating formControlName="rating" [stars]="5" aria-labelledby="modal-rating-label" />
+            @if (form.controls.rating.value) {
+              <button type="button" class="shelf-modal__clear" (click)="clearRating()">
+                Clear rating
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="shelf-modal__row">
+        <div class="shelf-modal__field">
+          <label for="modal-started">Started</label>
+          <input pInputText id="modal-started" type="date" formControlName="startedAt" />
+        </div>
+
+        <div class="shelf-modal__field">
+          <label for="modal-finished">Finished</label>
+          <input pInputText id="modal-finished" type="date" formControlName="finishedAt" />
+        </div>
+      </div>
+
+      <div class="shelf-modal__field">
+        <label for="modal-note">Note</label>
+        <textarea
+          pTextarea
+          id="modal-note"
+          rows="4"
+          formControlName="note"
+          class="shelf-modal__textarea"
+          [attr.maxlength]="noteMaxLength"
+          placeholder="Why you want to read it, what you thought of it…"
+        ></textarea>
+        <small class="shelf-modal__counter">
+          {{ form.controls.note.value.length }} / {{ noteMaxLength }}
+        </small>
+      </div>
+
+      @if (errorMessage(); as message) {
+        <p-message severity="error" [text]="message" />
+      }
+
+      <div class="shelf-modal__actions">
+        <p-button
+          type="button"
+          label="Remove from shelf"
+          icon="pi pi-trash"
+          severity="danger"
+          [text]="true"
+          [loading]="removing()"
+          (onClick)="onRemove()"
+        />
+
+        <div class="shelf-modal__actions-main">
+          <p-button
+            type="button"
+            label="Cancel"
+            severity="secondary"
+            [text]="true"
+            (onClick)="requestClose()"
+          />
+          <p-button
+            type="submit"
+            label="Save changes"
+            icon="pi pi-check"
+            [disabled]="!form.dirty"
+            [loading]="saving()"
+          />
+        </div>
+      </div>
+    </form>
+  }
+</p-dialog>
+
+<p-confirmdialog [style]="{ width: '30rem' }" (onHide)="onConfirmHidden()" />

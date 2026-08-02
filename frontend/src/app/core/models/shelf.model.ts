@@ -23,6 +23,31 @@ export interface ShelfItem extends BookCardData {
   addedAt: string;
 }
 
+/**
+ * A partial update: only the fields present are written. Because an absent field and a null one
+ * are the same thing in JSON, clearing a value has its own signal — an empty string for the note
+ * and the two dates, 0 for the rating. `today` is the reader's own calendar day, which the
+ * backend needs for the dates a status change sets automatically.
+ */
+export interface UpdateShelfItemRequest {
+  status?: ReadingStatus;
+  rating?: number;
+  note?: string;
+  startedAt?: string;
+  finishedAt?: string;
+  pageCount?: number;
+  today?: string;
+}
+
+export interface ShelfCounts {
+  wantToRead: number;
+  reading: number;
+  read: number;
+}
+
+/** Matches the backend's `?sort=` values, though the shelf sorts what it already has loaded. */
+export type ShelfSort = 'added_desc' | 'title' | 'rating_desc' | 'finished_desc';
+
 export interface AddToShelfRequest {
   openLibraryId?: string;
   bookId?: string;

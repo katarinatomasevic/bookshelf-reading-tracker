@@ -28,4 +28,28 @@ public class ShelfController(IShelfService shelfService) : ControllerBase
         var shelf = await shelfService.GetShelfAsync(User.GetUserId(), status, sort, cancellationToken);
         return Ok(shelf);
     }
+
+    [HttpGet("counts")]
+    public async Task<ActionResult<ShelfCountsDto>> GetCounts(CancellationToken cancellationToken)
+    {
+        var counts = await shelfService.GetCountsAsync(User.GetUserId(), cancellationToken);
+        return Ok(counts);
+    }
+
+    [HttpPatch("{userBookId:guid}")]
+    public async Task<ActionResult<ShelfItemDto>> Update(
+        Guid userBookId,
+        [FromBody] UpdateUserBookRequest request,
+        CancellationToken cancellationToken)
+    {
+        var item = await shelfService.UpdateAsync(User.GetUserId(), userBookId, request, cancellationToken);
+        return Ok(item);
+    }
+
+    [HttpDelete("{userBookId:guid}")]
+    public async Task<IActionResult> Remove(Guid userBookId, CancellationToken cancellationToken)
+    {
+        await shelfService.RemoveAsync(User.GetUserId(), userBookId, cancellationToken);
+        return NoContent();
+    }
 }

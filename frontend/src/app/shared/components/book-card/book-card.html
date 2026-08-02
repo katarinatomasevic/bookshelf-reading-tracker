@@ -18,6 +18,14 @@
     @if (book().author; as author) {
       <div class="book-card__author">{{ author }}</div>
     }
+
+    @if (stars(); as stars) {
+      <div class="book-card__rating" [attr.aria-label]="'Rated ' + rating() + ' out of 5'">
+        @for (filled of stars; track $index) {
+          <i class="pi" [class.pi-star-fill]="filled" [class.pi-star]="!filled"></i>
+        }
+      </div>
+    }
   </div>
 
   @if (showAddButton()) {

@@ -22,6 +22,12 @@
           <p class="book-details__author">{{ details.author }}</p>
         }
 
+        <!-- Only books we already store carry a page count: the Open Library work endpoint does
+             not return one, and fetching it live would cost an extra call per book we never keep. -->
+        @if (details.pageCount) {
+          <p class="book-details__pages">{{ details.pageCount }} pages</p>
+        }
+
         @if (details.averageRating !== null) {
           <p class="book-details__rating">
             <i class="pi pi-star-fill"></i>

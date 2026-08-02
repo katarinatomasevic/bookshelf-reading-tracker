@@ -1,0 +1,158 @@
+.shelf-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+}
+
+.shelf-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-2);
+  width: 100%;
+  min-width: 0;
+}
+
+.shelf-modal__header-title {
+  font-weight: 600;
+  font-size: 1.15rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.shelf-modal__book {
+  display: flex;
+  gap: var(--app-space-2);
+  align-items: flex-start;
+}
+
+.shelf-modal__cover {
+  flex: 0 0 auto;
+  width: 96px;
+  height: 144px;
+  object-fit: cover;
+  border-radius: var(--p-border-radius-md, 0.5rem);
+  border: 1px solid var(--p-content-border-color, #e5e7eb);
+}
+
+.shelf-modal__cover--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--p-content-background, #f4f4f5);
+  opacity: 0.7;
+  font-size: 1.75rem;
+}
+
+.shelf-modal__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.shelf-modal__author,
+.shelf-modal__pages {
+  margin: 0;
+  color: var(--p-text-muted-color, #71717a);
+  font-size: 0.9rem;
+}
+
+.shelf-modal__details-link {
+  font-size: 0.9rem;
+  color: var(--p-primary-color, #10b981);
+  width: fit-content;
+}
+
+/* Same label/field spacing the other forms in this feature use. */
+.shelf-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 0;
+
+  label {
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+
+  input {
+    width: 100%;
+  }
+}
+
+.shelf-modal__field--narrow {
+  max-width: 9rem;
+}
+
+.shelf-modal__row {
+  display: flex;
+  gap: var(--app-space-2);
+
+  .shelf-modal__field {
+    flex: 1;
+  }
+}
+
+.shelf-modal__rating {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  min-height: 2.5rem;
+}
+
+/* A button rather than a star: PrimeNG's rating cannot return to "no rating" on its own. */
+.shelf-modal__clear {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color, #71717a);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.shelf-modal__textarea {
+  width: 100%;
+  font: inherit;
+  resize: vertical;
+}
+
+.shelf-modal__hint {
+  color: var(--p-text-muted-color, #71717a);
+}
+
+.shelf-modal__counter {
+  align-self: flex-end;
+  color: var(--p-text-muted-color, #71717a);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Removing is destructive, so it sits apart from Cancel/Save rather than beside them. */
+.shelf-modal__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-2);
+  flex-wrap: wrap;
+  margin-top: var(--app-space-1);
+  padding-top: var(--app-space-2);
+  border-top: 1px solid var(--p-content-border-color, #e5e7eb);
+}
+
+.shelf-modal__actions-main {
+  display: flex;
+  gap: var(--app-space-1);
+  margin-left: auto;
+}
+
+@media (max-width: 480px) {
+  .shelf-modal__row {
+    flex-direction: column;
+  }
+
+  .shelf-modal__book {
+    flex-direction: column;
+  }
+}

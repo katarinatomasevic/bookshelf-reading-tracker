@@ -12,4 +12,11 @@ public interface IShelfService
 
     Task<IReadOnlyList<ShelfItemDto>> GetShelfAsync(
         Guid userId, ReadingStatus? status, string? sort, CancellationToken cancellationToken);
+
+    Task<ShelfCountsDto> GetCountsAsync(Guid userId, CancellationToken cancellationToken);
+
+    Task<ShelfItemDto> UpdateAsync(
+        Guid userId, Guid userBookId, UpdateUserBookRequest request, CancellationToken cancellationToken);
+
+    Task RemoveAsync(Guid userId, Guid userBookId, CancellationToken cancellationToken);
 }

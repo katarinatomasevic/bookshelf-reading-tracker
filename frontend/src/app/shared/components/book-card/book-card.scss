@@ -75,3 +75,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Read-only: the rating is set in the shelf modal, the card only reports it. */
+.book-card__rating {
+  display: flex;
+  gap: 0.1rem;
+  margin-top: auto;
+  font-size: 0.8rem;
+  color: var(--p-rating-icon-active-color, #f59e0b);
+}

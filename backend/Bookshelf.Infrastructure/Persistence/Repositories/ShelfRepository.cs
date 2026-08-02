@@ -12,10 +12,41 @@ public class ShelfRepository(AppDbContext context) : IShelfRepository
             .Include(ub => ub.Book)
             .FirstOrDefaultAsync(ub => ub.UserId == userId && ub.BookId == bookId, cancellationToken);
 
+    public Task<UserBook?> GetByIdAsync(Guid userId, Guid userBookId, CancellationToken cancellationToken) =>
+        context.UserBooks
+            .Include(ub => ub.Book)
+            .FirstOrDefaultAsync(ub => ub.Id == userBookId && ub.UserId == userId, cancellationToken);
+
     public async Task AddAsync(UserBook userBook, CancellationToken cancellationToken)
     {
         context.UserBooks.Add(userBook);
         await context.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// The entry comes from <see cref="GetByIdAsync"/> and is therefore already tracked, so
+    /// saving is enough. That also covers a page count filled in on the included Book.
+    /// </summary>
+    public Task UpdateAsync(UserBook userBook, CancellationToken cancellationToken) =>
+        context.SaveChangesAsync(cancellationToken);
+
+    public async Task DeleteAsync(UserBook userBook, CancellationToken cancellationToken)
+    {
+        context.UserBooks.Remove(userBook);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyDictionary<ReadingStatus, int>> GetCountsAsync(
+        Guid userId, CancellationToken cancellationToken)
+    {
+        // Grouping in the database returns at most three rows instead of the whole shelf.
+        var counts = await context.UserBooks
+            .Where(ub => ub.UserId == userId)
+            .GroupBy(ub => ub.Status)
+            .Select(group => new { Status = group.Key, Count = group.Count() })
+            .ToListAsync(cancellationToken);
+
+        return counts.ToDictionary(entry => entry.Status, entry => entry.Count);
     }
 
     public async Task<IReadOnlyList<UserBook>> GetShelfAsync(
