@@ -1,0 +1,17 @@
+.reading-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+/* Thinner than the PrimeNG default: on a shelf card the bar is a hint, not the content. */
+:host ::ng-deep .p-progressbar {
+  height: 0.5rem;
+}
+
+.reading-progress__label {
+  font-size: 0.8rem;
+  color: var(--p-text-muted-color, #71717a);
+  font-variant-numeric: tabular-nums;
+}

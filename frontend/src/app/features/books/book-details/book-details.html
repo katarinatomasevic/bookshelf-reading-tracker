@@ -28,14 +28,18 @@
           <p class="book-details__pages">{{ details.pageCount }} pages</p>
         }
 
-        @if (details.averageRating !== null) {
-          <p class="book-details__rating">
-            <i class="pi pi-star-fill"></i>
-            {{ details.averageRating!.toFixed(1) }}
-            <span class="book-details__rating-count">({{ details.ratingsCount }} ratings on Open Library)</span>
-          </p>
-        } @else {
-          <p class="book-details__rating book-details__rating--none">No Open Library ratings yet.</p>
+        <!-- Only for books that exist on Open Library. A manually added book has no entry there
+             and never will, so "no ratings yet" would promise something that cannot arrive. -->
+        @if (details.openLibraryId) {
+          @if (details.averageRating !== null) {
+            <p class="book-details__rating">
+              <i class="pi pi-star-fill"></i>
+              {{ details.averageRating!.toFixed(1) }}
+              <span class="book-details__rating-count">({{ details.ratingsCount }} ratings on Open Library)</span>
+            </p>
+          } @else {
+            <p class="book-details__rating book-details__rating--none">No Open Library ratings yet.</p>
+          }
         }
 
         @if (details.subjects && details.subjects.length > 0) {

@@ -1,10 +1,11 @@
 import { Component, computed, input, output } from '@angular/core';
 import { BookCardData } from '../../../core/models/book.model';
 import { AddToShelfButton } from '../add-to-shelf-button/add-to-shelf-button';
+import { ReadingProgress } from '../reading-progress/reading-progress';
 
 @Component({
   selector: 'app-book-card',
-  imports: [AddToShelfButton],
+  imports: [AddToShelfButton, ReadingProgress],
   templateUrl: './book-card.html',
   styleUrl: './book-card.scss',
 })
@@ -20,6 +21,15 @@ export class BookCard {
    * results have nothing to put here.
    */
   readonly rating = input<number | null>(null);
+
+  /**
+   * Progress is opt-in rather than inferred from the numbers: every book has a page count, but
+   * only a book actually being read has somewhere to be in it. The shelf passes this in the
+   * "Reading" tab alone.
+   */
+  readonly showProgress = input(false);
+  readonly currentPage = input<number | null>(null);
+  readonly pageCount = input<number | null>(null);
 
   readonly select = output<void>();
   readonly addToShelf = output<void>();

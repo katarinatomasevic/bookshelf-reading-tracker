@@ -94,10 +94,13 @@
   }
 }
 
+/* Fills whatever height the row ends up with and centres the stars in it, so they line up with
+   the middle of the Status dropdown beside them rather than with the top of its box. */
 .shelf-modal__rating {
   display: flex;
   align-items: center;
   gap: var(--app-space-2);
+  flex: 1;
   min-height: 2.5rem;
 }
 
@@ -111,6 +114,28 @@
   color: var(--p-text-muted-color, #71717a);
   cursor: pointer;
   text-decoration: underline;
+}
+
+/* Each section owns one write action and carries its own button. The border is what tells the
+   reader how far a given Save reaches, before they have to find out by clicking. */
+.shelf-modal__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  padding: var(--app-space-2);
+  border: 1px solid var(--p-content-border-color, #e5e7eb);
+  border-radius: var(--p-border-radius-md, 0.5rem);
+}
+
+.shelf-modal__section-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.shelf-modal__section-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .shelf-modal__textarea {
@@ -129,22 +154,16 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Removing is destructive, so it sits apart from Cancel/Save rather than beside them. */
+/* Removing is destructive and belongs to the whole entry rather than to either section, so it
+   stands alone below both, past a divider. */
 .shelf-modal__actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--app-space-2);
   flex-wrap: wrap;
   margin-top: var(--app-space-1);
   padding-top: var(--app-space-2);
   border-top: 1px solid var(--p-content-border-color, #e5e7eb);
-}
-
-.shelf-modal__actions-main {
-  display: flex;
-  gap: var(--app-space-1);
-  margin-left: auto;
 }
 
 @media (max-width: 480px) {

@@ -65,6 +65,15 @@ export class ShelfService {
     );
   }
 
+  /**
+   * Puts a shelf entry the server just returned back into the signal. Public because logging
+   * reading progress also returns an updated entry, and that call is made from a shared
+   * component which must not reach into this service itself.
+   */
+  applyItem(item: ShelfItem): void {
+    this.upsert(item);
+  }
+
   /** Adding is idempotent server-side, so the same entry can come back twice. */
   private upsert(item: ShelfItem): void {
     this.items.update((current) => {

@@ -38,15 +38,10 @@
             <p class="shelf-modal__author">{{ author }}</p>
           }
 
-          @if (canEditPageCount(item)) {
-            <div class="shelf-modal__field shelf-modal__field--narrow">
-              <label for="modal-pages">Pages</label>
-              <input pInputText id="modal-pages" type="number" formControlName="pageCount" min="1" />
-              <small class="shelf-modal__hint">
-                Open Library has no page count for this book. Adding one enables reading progress.
-              </small>
-            </div>
-          } @else {
+          <!-- Once known, the page count is the book's own metadata and belongs up here with
+               the cover. While it is missing it is a field this user can fill in, so it lives
+               in the section whose button saves it. -->
+          @if (!canEditPageCount(item)) {
             <p class="shelf-modal__pages">{{ item.pageCount }} pages</p>
           }
 
@@ -56,62 +51,106 @@
         </div>
       </div>
 
-      <div class="shelf-modal__row">
-        <div class="shelf-modal__field">
-          <label for="modal-status">Status</label>
-          <p-select
-            inputId="modal-status"
-            formControlName="status"
-            [options]="statusOptions"
-            optionLabel="label"
-            optionValue="value"
-            appendTo="body"
-          />
-        </div>
+      <!-- Everything this user records about the book, saved together by one button at the
+           foot of the section. The section boundary is what makes the save scope visible. -->
+      <section class="shelf-modal__section">
+        <h3 class="shelf-modal__section-title">Your details</h3>
 
-        <div class="shelf-modal__field">
-          <label id="modal-rating-label">Your rating</label>
-          <div class="shelf-modal__rating">
-            <p-rating formControlName="rating" [stars]="5" aria-labelledby="modal-rating-label" />
-            @if (form.controls.rating.value) {
-              <button type="button" class="shelf-modal__clear" (click)="clearRating()">
-                Clear rating
-              </button>
-            }
+        @if (canEditPageCount(item)) {
+          <div class="shelf-modal__field shelf-modal__field--narrow">
+            <label for="modal-pages">Pages</label>
+            <input pInputText id="modal-pages" type="number" formControlName="pageCount" min="1" />
+            <small class="shelf-modal__hint">{{ pageCountHint(item) }}</small>
+          </div>
+        }
+
+        <div class="shelf-modal__row">
+          <div class="shelf-modal__field">
+            <label for="modal-status">Status</label>
+            <p-select
+              inputId="modal-status"
+              formControlName="status"
+              [options]="statusOptions"
+              optionLabel="label"
+              optionValue="value"
+              appendTo="body"
+            />
+          </div>
+
+          <div class="shelf-modal__field">
+            <label id="modal-rating-label">Your rating</label>
+            <div class="shelf-modal__rating">
+              <p-rating formControlName="rating" [stars]="5" aria-labelledby="modal-rating-label" />
+              @if (form.controls.rating.value) {
+                <button type="button" class="shelf-modal__clear" (click)="clearRating()">
+                  Clear rating
+                </button>
+              }
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="shelf-modal__row">
-        <div class="shelf-modal__field">
-          <label for="modal-started">Started</label>
-          <input pInputText id="modal-started" type="date" formControlName="startedAt" />
+        <div class="shelf-modal__row">
+          <div class="shelf-modal__field">
+            <label for="modal-started">Started</label>
+            <input pInputText id="modal-started" type="date" formControlName="startedAt" />
+          </div>
+
+          <div class="shelf-modal__field">
+            <label for="modal-finished">Finished</label>
+            <input pInputText id="modal-finished" type="date" formControlName="finishedAt" />
+          </div>
         </div>
 
         <div class="shelf-modal__field">
-          <label for="modal-finished">Finished</label>
-          <input pInputText id="modal-finished" type="date" formControlName="finishedAt" />
+          <label for="modal-note">Note</label>
+          <textarea
+            pTextarea
+            id="modal-note"
+            rows="4"
+            formControlName="note"
+            class="shelf-modal__textarea"
+            [attr.maxlength]="noteMaxLength"
+            placeholder="Why you want to read it, what you thought of it…"
+          ></textarea>
+          <small class="shelf-modal__counter">
+            {{ form.controls.note.value.length }} / {{ noteMaxLength }}
+          </small>
         </div>
-      </div>
 
-      <div class="shelf-modal__field">
-        <label for="modal-note">Note</label>
-        <textarea
-          pTextarea
-          id="modal-note"
-          rows="4"
-          formControlName="note"
-          class="shelf-modal__textarea"
-          [attr.maxlength]="noteMaxLength"
-          placeholder="Why you want to read it, what you thought of it…"
-        ></textarea>
-        <small class="shelf-modal__counter">
-          {{ form.controls.note.value.length }} / {{ noteMaxLength }}
-        </small>
-      </div>
+        @if (errorMessage(); as message) {
+          <p-message severity="error" [text]="message" />
+        }
 
-      @if (errorMessage(); as message) {
-        <p-message severity="error" [text]="message" />
+        <div class="shelf-modal__section-actions">
+          <p-button
+            type="submit"
+            [label]="justSaved() ? 'Saved' : 'Save changes'"
+            [icon]="justSaved() ? 'pi pi-check-circle' : 'pi pi-check'"
+            [disabled]="!form.dirty"
+            [loading]="saving()"
+          />
+        </div>
+      </section>
+
+      <!--
+        Its own section with its own button, because it writes a reading log rather than any of
+        the fields above: a day's reading is an event that happened, not a value being edited,
+        and it cannot be taken back by closing the dialog.
+      -->
+      @if (showProgress()) {
+        <section class="shelf-modal__section">
+          <h3 class="shelf-modal__section-title">Reading progress</h3>
+
+          <app-reading-progress [currentPage]="item.currentPage" [pageCount]="item.pageCount" />
+
+          <app-progress-entry
+            [userBookId]="item.id"
+            [currentPage]="item.currentPage"
+            [pageCount]="item.pageCount"
+            (logged)="onProgressLogged($event)"
+          />
+        </section>
       }
 
       <div class="shelf-modal__actions">
@@ -124,23 +163,6 @@
           [loading]="removing()"
           (onClick)="onRemove()"
         />
-
-        <div class="shelf-modal__actions-main">
-          <p-button
-            type="button"
-            label="Cancel"
-            severity="secondary"
-            [text]="true"
-            (onClick)="requestClose()"
-          />
-          <p-button
-            type="submit"
-            label="Save changes"
-            icon="pi pi-check"
-            [disabled]="!form.dirty"
-            [loading]="saving()"
-          />
-        </div>
       </div>
     </form>
   }

@@ -1,5 +1,6 @@
 using Bookshelf.Application.Auth;
 using Bookshelf.Application.Books;
+using Bookshelf.Application.ReadingLogs;
 using Bookshelf.Application.Shelf;
 using Bookshelf.Infrastructure.Auth;
 using Bookshelf.Infrastructure.ExternalServices.OpenLibrary;
@@ -23,6 +24,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IBookRepository, BookRepository>();
         services.AddScoped<IShelfRepository, ShelfRepository>();
+        services.AddScoped<IReadingLogRepository, ReadingLogRepository>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
         var openLibraryBaseUrl = configuration["OpenLibrary:BaseUrl"]
