@@ -19,13 +19,21 @@
       <div class="book-card__author">{{ author }}</div>
     }
 
-    @if (stars(); as stars) {
-      <div class="book-card__rating" [attr.aria-label]="'Rated ' + rating() + ' out of 5'">
-        @for (filled of stars; track $index) {
-          <i class="pi" [class.pi-star-fill]="filled" [class.pi-star]="!filled"></i>
-        }
-      </div>
-    }
+    <!-- Kept together at the foot of the card so cards in a grid line up whether or not a book
+         has a rating, progress, both or neither. -->
+    <div class="book-card__footer">
+      @if (stars(); as stars) {
+        <div class="book-card__rating" [attr.aria-label]="'Rated ' + rating() + ' out of 5'">
+          @for (filled of stars; track $index) {
+            <i class="pi" [class.pi-star-fill]="filled" [class.pi-star]="!filled"></i>
+          }
+        </div>
+      }
+
+      @if (showProgress()) {
+        <app-reading-progress [currentPage]="currentPage()" [pageCount]="pageCount()" />
+      }
+    </div>
   </div>
 
   @if (showAddButton()) {

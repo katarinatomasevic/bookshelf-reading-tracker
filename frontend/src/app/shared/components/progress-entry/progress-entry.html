@@ -1,0 +1,74 @@
+<!--
+  A div rather than a form element on purpose. The shelf modal is itself one big form, and a
+  nested form is invalid HTML whose submit behaviour is left to the browser. Enter is wired to
+  the number field instead, so the shortcut still works without the nesting.
+-->
+<div class="progress-entry" [formGroup]="form">
+  <p-selectbutton
+    formControlName="mode"
+    [options]="modeOptions()"
+    optionLabel="label"
+    optionValue="value"
+    optionDisabled="disabled"
+    [allowEmpty]="false"
+    size="small"
+    ariaLabel="How to enter progress"
+    (onChange)="onModeChange($event.value)"
+  />
+
+  @if (!isToday()) {
+    <small class="progress-entry__hint">
+      "To page" applies to today only — for an earlier day, enter how many pages you read.
+    </small>
+  }
+
+  <div class="progress-entry__fields">
+    <div class="progress-entry__field">
+      <label for="progress-amount">{{ amountLabel() }}</label>
+      <input
+        pInputText
+        id="progress-amount"
+        type="number"
+        inputmode="numeric"
+        min="1"
+        formControlName="amount"
+        placeholder="e.g. 30"
+        [attr.aria-describedby]="validationMessage() ? 'progress-amount-error' : null"
+        (keydown.enter)="onSubmit()"
+      />
+    </div>
+
+    <div class="progress-entry__field">
+      <label for="progress-date">Date</label>
+      <input
+        pInputText
+        id="progress-date"
+        type="date"
+        formControlName="date"
+        [attr.min]="minDate"
+        [attr.max]="maxDate"
+        (change)="onDateChange($any($event.target).value)"
+      />
+    </div>
+
+    <!-- Deliberately not the small size: bottom-aligned in this row, a shorter button would
+         sit low against the inputs instead of lining up with them. -->
+    <p-button
+      type="button"
+      label="Log progress"
+      icon="pi pi-plus"
+      [disabled]="form.invalid"
+      [loading]="saving()"
+      (onClick)="onSubmit()"
+    />
+  </div>
+
+  <!-- Explains the greyed-out button before the reader has to guess at it. -->
+  @if (validationMessage(); as message) {
+    <small id="progress-amount-error" class="progress-entry__error">{{ message }}</small>
+  }
+
+  @if (errorMessage(); as message) {
+    <p-message severity="error" [text]="message" />
+  }
+</div>

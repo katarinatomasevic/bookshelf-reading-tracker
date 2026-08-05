@@ -62,7 +62,10 @@
         </p-tabpanel>
 
         <p-tabpanel [value]="1">
-          <ng-container *ngTemplateOutlet="panel; context: { $implicit: reading() }" />
+          <!-- Only here: a book has a place in it only while it is being read. -->
+          <ng-container
+            *ngTemplateOutlet="panel; context: { $implicit: reading(), showProgress: true }"
+          />
         </p-tabpanel>
 
         <p-tabpanel [value]="2">
@@ -82,7 +85,7 @@
 </main>
 
 <!-- One body for all three tabs: they differ only in which slice of the shelf they render. -->
-<ng-template #panel let-items>
+<ng-template #panel let-items let-showProgress="showProgress">
   @if (items.length === 0) {
     @if (isSearching()) {
       <p class="shelf-page__empty-tab">
@@ -104,7 +107,14 @@
   } @else {
     <div class="shelf-page__grid">
       @for (item of items; track item.id) {
-        <app-book-card [book]="item" [rating]="item.rating" (select)="onSelect(item)" />
+        <app-book-card
+          [book]="item"
+          [rating]="item.rating"
+          [showProgress]="!!showProgress"
+          [currentPage]="item.currentPage"
+          [pageCount]="item.pageCount"
+          (select)="onSelect(item)"
+        />
       }
     </div>
   }

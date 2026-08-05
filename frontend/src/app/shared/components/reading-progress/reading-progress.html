@@ -1,0 +1,19 @@
+@if (hasSomethingToShow()) {
+  <div class="reading-progress">
+    @if (hasBar()) {
+      <p-progressbar
+        [value]="percent() ?? 0"
+        [showValue]="false"
+        [attr.aria-label]="'Read ' + percent() + ' percent of this book'"
+      />
+    }
+
+    <span class="reading-progress__label">
+      @if (pageCount(); as total) {
+        Page {{ page() }} of {{ total }} · {{ percent() }}%
+      } @else {
+        Page {{ page() }}
+      }
+    </span>
+  </div>
+}

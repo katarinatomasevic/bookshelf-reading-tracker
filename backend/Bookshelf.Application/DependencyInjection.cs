@@ -1,5 +1,6 @@
 using Bookshelf.Application.Auth;
 using Bookshelf.Application.Books;
+using Bookshelf.Application.ReadingLogs;
 using Bookshelf.Application.Shelf;
 using Bookshelf.Application.Users;
 using Microsoft.Extensions.Caching.Memory;
@@ -15,6 +16,7 @@ public static class DependencyInjection
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IBookService, BookService>();
         services.AddScoped<IShelfService, ShelfService>();
+        services.AddScoped<IReadingLogService, ReadingLogService>();
         services.AddMemoryCache(options => options.SizeLimit = 1000);
 
         return services;
