@@ -7,6 +7,7 @@ import { MessageModule } from 'primeng/message';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { LogProgressRequest, LogProgressResponse } from '../../../core/models/reading-log.model';
 import { ReadingLogService } from '../../../core/services/reading-log.service';
+import { localDate } from '../../../core/utils/local-date';
 
 type EntryMode = 'pagesRead' | 'toPage';
 
@@ -48,8 +49,8 @@ export class ProgressEntry {
   /** Mirrors the backend window; the date input refuses what the API would reject anyway. */
   private readonly maxBackdatedDays = 30;
 
-  protected readonly maxDate = this.today();
-  protected readonly minDate = this.dateDaysAgo(this.maxBackdatedDays);
+  protected readonly maxDate = localDate();
+  protected readonly minDate = localDate(this.maxBackdatedDays);
 
   protected readonly form = this.fb.nonNullable.group({
     mode: ['pagesRead' as EntryMode],
@@ -181,22 +182,5 @@ export class ProgressEntry {
         );
       },
     });
-  }
-
-  /**
-   * Built from local date parts rather than `toISOString()`, which would send the UTC day and
-   * date the entry to yesterday for anyone logging progress late in the evening.
-   */
-  private today(): string {
-    return this.dateDaysAgo(0);
-  }
-
-  private dateDaysAgo(days: number): string {
-    const date = new Date();
-    date.setDate(date.getDate() - days);
-
-    const pad = (value: number) => String(value).padStart(2, '0');
-
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
   }
 }

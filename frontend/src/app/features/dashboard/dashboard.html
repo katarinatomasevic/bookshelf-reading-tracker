@@ -1,0 +1,111 @@
+<section class="dashboard">
+  <!-- Carries the theme's colours so the canvas charts can read them resolved. See Dashboard. -->
+  <span #themeProbe class="dashboard__theme-probe" aria-hidden="true"></span>
+
+  <h1 class="dashboard__heading">Dashboard</h1>
+
+  @if (error()) {
+    <p class="dashboard__error">{{ error() }}</p>
+  }
+
+  @if (!ready() && !error()) {
+    <div class="dashboard__loading">
+      <p-progress-spinner />
+    </div>
+  } @else if (shelfEmpty()) {
+    <!-- Zeros and six empty charts would be a worse answer than saying what to do first. -->
+    <div class="app-card dashboard__empty">
+      <i class="pi pi-book dashboard__empty-icon"></i>
+      <h2>Nothing to track yet</h2>
+      <p>Add your first book to your shelf to start tracking your progress.</p>
+      <p-button label="Search books" icon="pi pi-search" routerLink="/" />
+    </div>
+  } @else if (summary(); as data) {
+    <section class="dashboard__section">
+      <h2 class="dashboard__section-title">Currently reading</h2>
+
+      @if (currentlyReading().length > 0) {
+        <div class="dashboard__strip">
+          @for (item of currentlyReading(); track item.id) {
+            <app-currently-reading-card
+              [item]="item"
+              (logged)="onLogged($event)"
+              (markAsRead)="onMarkAsRead($event)"
+            />
+          }
+        </div>
+      } @else {
+        <p class="dashboard__hint">
+          Nothing in progress right now.
+          <a routerLink="/shelf">Move a book to “Reading”</a> to log your pages here.
+        </p>
+      }
+    </section>
+
+    <section class="app-card dashboard__streak">
+      <i class="pi pi-bolt dashboard__streak-icon"></i>
+      <p class="dashboard__streak-current">
+        <strong>{{ data.streak.current }}</strong> {{ dayLabel(data.streak.current) }} in a row
+      </p>
+      <p class="dashboard__streak-record">Longest: {{ data.streak.longest }} {{ dayLabel(data.streak.longest) }}</p>
+    </section>
+
+    <section class="dashboard__section">
+      <div class="dashboard__period">
+        <label for="period">Period</label>
+        <p-select
+          inputId="period"
+          [options]="periodOptions"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="period()"
+          (ngModelChange)="onPeriodChange($event)"
+        />
+      </div>
+
+      <div class="dashboard__cards">
+        <article class="app-card dashboard__stat">
+          <span class="dashboard__stat-value">{{ data.stats.booksRead }}</span>
+          <span class="dashboard__stat-label">books read</span>
+        </article>
+        <article class="app-card dashboard__stat">
+          <span class="dashboard__stat-value">{{ data.stats.totalPages }}</span>
+          <span class="dashboard__stat-label">total pages</span>
+        </article>
+        <article class="app-card dashboard__stat">
+          <span class="dashboard__stat-value">{{ data.stats.averagePagesPerDay }}</span>
+          <span class="dashboard__stat-label">pages per day</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="app-card dashboard__section">
+      <h2 class="dashboard__section-title">Activity (last 26 weeks)</h2>
+      @if (activity(); as grid) {
+        <app-activity-grid [activity]="grid" />
+      }
+    </section>
+
+    <div class="dashboard__charts">
+      <section class="app-card">
+        <h2 class="dashboard__section-title">{{ booksChartTitle() }}</h2>
+        @if (hasBooksFinishedData()) {
+          <p-chart type="bar" [data]="booksChartData()" [options]="booksChartOptions()" height="260px" />
+        } @else {
+          <p class="dashboard__hint">No data yet.</p>
+        }
+      </section>
+
+      <section class="app-card">
+        <h2 class="dashboard__section-title">Top genres</h2>
+        @if (data.topGenres.length > 0) {
+          <p-chart type="bar" [data]="genresChartData()" [options]="genresChartOptions()" height="260px" />
+        } @else {
+          <p class="dashboard__hint">No data yet.</p>
+        }
+      </section>
+    </div>
+  }
+</section>
+
+<p-confirmdialog [style]="{ width: '30rem' }" />

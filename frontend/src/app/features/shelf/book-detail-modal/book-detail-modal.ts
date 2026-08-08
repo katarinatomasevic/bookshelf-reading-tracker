@@ -23,6 +23,7 @@ import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { LogProgressResponse } from '../../../core/models/reading-log.model';
 import { ReadingStatus, ShelfItem, UpdateShelfItemRequest } from '../../../core/models/shelf.model';
+import { localDate } from '../../../core/utils/local-date';
 import { ProgressEntry } from '../../../shared/components/progress-entry/progress-entry';
 import { ReadingProgress } from '../../../shared/components/reading-progress/reading-progress';
 import { ShelfService } from '../shelf.service';
@@ -425,14 +426,8 @@ export class BookDetailModal {
     return request;
   }
 
-  /**
-   * The reader's calendar day, built from local parts on purpose: `toISOString()` would send the
-   * UTC day and stamp yesterday on someone finishing a book late at night.
-   */
+  /** The reader's calendar day — see {@link localDate} for why it is not `toISOString()`. */
   private today(): string {
-    const now = new Date();
-    const pad = (value: number) => String(value).padStart(2, '0');
-
-    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    return localDate();
   }
 }
