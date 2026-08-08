@@ -1,0 +1,160 @@
+.dashboard {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--app-space-4) var(--app-space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+}
+
+/*
+ * Never seen: its only job is to hold three theme tokens as real, resolved colours, which is the
+ * one way to hand a `<canvas>` a value defined through `light-dark()`.
+ */
+.dashboard__theme-probe {
+  position: absolute;
+  width: 0;
+  height: 0;
+  visibility: hidden;
+  color: var(--p-text-muted-color);
+  border-color: var(--p-content-border-color);
+  background-color: var(--p-primary-500);
+}
+
+.dashboard__heading {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.dashboard__loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--app-space-4);
+}
+
+.dashboard__error {
+  color: var(--p-red-500, #ef4444);
+  margin: 0;
+}
+
+.dashboard__empty {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--app-space-2);
+
+  h2 {
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+    color: var(--p-text-muted-color);
+  }
+}
+
+.dashboard__empty-icon {
+  font-size: 2rem;
+  color: var(--p-text-muted-color);
+}
+
+.dashboard__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+}
+
+.dashboard__section-title {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.dashboard__hint {
+  margin: 0;
+  color: var(--p-text-muted-color);
+  font-size: 0.875rem;
+}
+
+/* The strip wraps rather than scrolls: two or three books at a time is the realistic case. */
+.dashboard__strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--app-space-2);
+}
+
+.dashboard__streak {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  padding: var(--app-space-2) var(--app-space-3);
+}
+
+.dashboard__streak-icon {
+  font-size: 1.5rem;
+  color: var(--p-primary-color);
+}
+
+.dashboard__streak-current {
+  margin: 0;
+  font-size: 1.125rem;
+
+  strong {
+    font-size: 1.5rem;
+  }
+}
+
+.dashboard__streak-record {
+  margin: 0 0 0 auto;
+  color: var(--p-text-muted-color);
+  font-size: 0.875rem;
+}
+
+.dashboard__period {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-1);
+  justify-content: flex-end;
+
+  label {
+    color: var(--p-text-muted-color);
+    font-size: 0.875rem;
+  }
+}
+
+.dashboard__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--app-space-2);
+}
+
+.dashboard__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: var(--app-space-2);
+}
+
+.dashboard__stat-value {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.dashboard__stat-label {
+  color: var(--p-text-muted-color);
+  font-size: 0.875rem;
+}
+
+.dashboard__charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--app-space-3);
+
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--app-space-2);
+  }
+}

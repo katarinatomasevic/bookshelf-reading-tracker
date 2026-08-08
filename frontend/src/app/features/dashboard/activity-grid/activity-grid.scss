@@ -1,0 +1,92 @@
+/*
+ * Colours come from the theme's primary ramp rather than from hand-picked hex values, so the
+ * grid follows the same palette as every button on the page — and follows the theme if it ever
+ * changes. The empty day borrows the content border colour: present, but clearly nothing.
+ */
+.activity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-1);
+}
+
+/*
+ * The grid fills the width it is given, but only up to a point: scaled across a wide screen the
+ * squares would grow into a chequerboard, which is not what this chart is. Capped and centred it
+ * fills the section without leaving a hole on the right.
+ */
+.activity__scroll {
+  overflow-x: auto;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Below the minimum the labels stop being legible, so the grid scrolls instead of shrinking. */
+.activity__svg {
+  display: block;
+  width: 100%;
+  min-width: 420px;
+  height: auto;
+}
+
+.activity__axis {
+  font-size: 9px;
+  fill: var(--p-text-muted-color);
+}
+
+.activity__cell--0 {
+  fill: var(--p-content-border-color);
+}
+
+.activity__cell--1 {
+  fill: var(--p-primary-200);
+}
+
+.activity__cell--2 {
+  fill: var(--p-primary-400);
+}
+
+.activity__cell--3 {
+  fill: var(--p-primary-600);
+}
+
+.activity__cell--4 {
+  fill: var(--p-primary-800);
+}
+
+/* Days the current week has not reached yet: the column is drawn whole, these are just empty. */
+.activity__cell--future {
+  fill: transparent;
+}
+
+.activity__legend {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
+}
+
+.activity__swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--p-content-border-color);
+}
+
+.activity__swatch.activity__cell--1 {
+  background: var(--p-primary-200);
+}
+
+.activity__swatch.activity__cell--2 {
+  background: var(--p-primary-400);
+}
+
+.activity__swatch.activity__cell--3 {
+  background: var(--p-primary-600);
+}
+
+.activity__swatch.activity__cell--4 {
+  background: var(--p-primary-800);
+}

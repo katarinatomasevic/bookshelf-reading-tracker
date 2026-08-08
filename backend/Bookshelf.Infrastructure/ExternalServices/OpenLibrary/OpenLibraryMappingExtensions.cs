@@ -6,7 +6,6 @@ namespace Bookshelf.Infrastructure.ExternalServices.OpenLibrary;
 
 internal static class OpenLibraryMappingExtensions
 {
-    private const int MaxSubjects = 15;
     private const string WorksKeyPrefix = "/works/";
     private const string AuthorsKeyPrefix = "/authors/";
 
@@ -17,7 +16,7 @@ internal static class OpenLibraryMappingExtensions
         doc.FirstPublishYear,
         doc.CoverId,
         doc.NumberOfPagesMedian,
-        doc.Subject?.Take(MaxSubjects).ToArray(),
+        SubjectFilter.Clean(doc.Subject),
         doc.Isbn?.FirstOrDefault());
 
     public static OpenLibraryWorkData ToWorkData(this OpenLibraryWorkResponse response) => new(
@@ -29,7 +28,7 @@ internal static class OpenLibraryMappingExtensions
             .Select(key => StripKeyPrefix(key!, AuthorsKeyPrefix))
             .ToArray()
             ?? [],
-        response.Subjects?.Take(MaxSubjects).ToArray(),
+        SubjectFilter.Clean(response.Subjects),
         response.Covers?.FirstOrDefault());
 
     /// <summary>Open Library returns description either as a plain string or as { "type": ..., "value": ... }.</summary>

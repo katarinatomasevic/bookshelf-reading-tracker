@@ -12,9 +12,6 @@ public class ShelfService(
     IBookService bookService,
     IOpenLibraryClient openLibraryClient) : IShelfService
 {
-    /// <summary>Same cap as the Open Library mapping uses — subject lists are free text and long.</summary>
-    private const int MaxSubjects = 15;
-
     /// <summary>
     /// Roughly a page of text: enough for why a book is on the shelf and what the reader thought
     /// of it. A cap is needed at all because every note travels with every shelf load, and
@@ -54,7 +51,7 @@ public class ShelfService(
             Author = NormalizeOptional(request.Author),
             Description = NormalizeOptional(request.Description),
             PageCount = request.PageCount,
-            Subjects = NormalizeSubjects(request.Subjects),
+            Subjects = SubjectFilter.Clean(request.Subjects),
             CreatedAt = DateTimeOffset.UtcNow,
         };
 
@@ -378,21 +375,4 @@ public class ShelfService(
 
     private static string? NormalizeOptional(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-
-    private static string[]? NormalizeSubjects(string[]? subjects)
-    {
-        if (subjects is null)
-        {
-            return null;
-        }
-
-        var cleaned = subjects
-            .Select(subject => subject?.Trim())
-            .Where(subject => !string.IsNullOrEmpty(subject))
-            .Select(subject => subject!)
-            .Take(MaxSubjects)
-            .ToArray();
-
-        return cleaned.Length > 0 ? cleaned : null;
-    }
 }

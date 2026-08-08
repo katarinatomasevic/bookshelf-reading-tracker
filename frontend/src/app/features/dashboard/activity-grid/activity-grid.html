@@ -1,0 +1,47 @@
+<div class="activity">
+  <div class="activity__scroll">
+    <svg
+      class="activity__svg"
+      [attr.viewBox]="'0 0 ' + width() + ' ' + height()"
+      preserveAspectRatio="xMidYMid meet"
+      role="img"
+      aria-label="Daily reading over the last 26 weeks"
+    >
+      @for (label of monthLabels(); track label.x) {
+        <text class="activity__axis" [attr.x]="label.x" y="10">{{ label.label }}</text>
+      }
+
+      @for (label of weekdayLabels; track label.text) {
+        <text class="activity__axis" x="0" [attr.y]="label.y">{{ label.text }}</text>
+      }
+
+      @for (cell of cells(); track cell.date) {
+        <rect
+          [attr.class]="cell.className"
+          [attr.x]="cell.x"
+          [attr.y]="cell.y"
+          [attr.width]="cellSize"
+          [attr.height]="cellSize"
+          rx="2"
+        >
+          @if (cell.title) {
+            <title>{{ cell.title }}</title>
+          }
+        </rect>
+      }
+    </svg>
+  </div>
+
+  <!-- Each swatch says what its shade stands for, so the scale is readable without a caption. -->
+  <div class="activity__legend">
+    <span>Less</span>
+    @for (step of legend; track step.level) {
+      <span
+        class="activity__swatch activity__cell--{{ step.level }}"
+        [title]="step.title"
+        [attr.aria-label]="step.title"
+      ></span>
+    }
+    <span>More</span>
+  </div>
+</div>

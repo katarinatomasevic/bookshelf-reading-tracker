@@ -14,9 +14,10 @@ import { SessionExpiredModal } from './core/components/session-expired-modal/ses
 export class App {
   protected readonly authService = inject(AuthService);
 
-  /** Navigation entries only — the profile dropdown deliberately holds no forms
-   *  (changing the display name or password lives on the /profile page instead).
-   *  A Dashboard entry joins these once that page exists. */
+  /** Account actions only. The pages of the app — Home, My shelf, Dashboard — are in the header
+   *  itself, so the dropdown is not half navigation and half account: it holds the two things
+   *  that are about *you* rather than about your books. It deliberately holds no forms either
+   *  (changing the display name or password lives on the /profile page instead). */
   protected readonly profileMenuItems: MenuItem[] = [
     { label: 'Profile', icon: 'pi pi-user', routerLink: '/profile' },
     { separator: true },

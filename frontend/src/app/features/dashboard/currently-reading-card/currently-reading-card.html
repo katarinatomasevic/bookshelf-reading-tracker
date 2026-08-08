@@ -1,0 +1,43 @@
+<article class="app-card reading-card">
+  <!--
+    The link sits on the cover and the title rather than on the whole card: the card holds a form,
+    and an anchor around it would be invalid HTML and would swallow clicks meant for the input.
+  -->
+  <a class="reading-card__book" [routerLink]="['/books', item().bookId]">
+    @if (coverUrl(); as cover) {
+      <img class="reading-card__cover" [src]="cover" [alt]="item().title" />
+    } @else {
+      <div class="reading-card__cover reading-card__cover--placeholder" aria-hidden="true">
+        <i class="pi pi-book"></i>
+      </div>
+    }
+
+    <div class="reading-card__title-block">
+      <h3 class="reading-card__title">{{ item().title }}</h3>
+      @if (item().author) {
+        <p class="reading-card__author">{{ item().author }}</p>
+      }
+    </div>
+  </a>
+
+  <!-- Pushed to the bottom so cards in a row line up however long the titles above them are. -->
+  <div class="reading-card__footer">
+    <app-reading-progress [currentPage]="item().currentPage" [pageCount]="item().pageCount" />
+
+    @if (isComplete()) {
+      <p-button
+        label="Mark as read"
+        icon="pi pi-check"
+        size="small"
+        (onClick)="markAsRead.emit(item().id)"
+      />
+    } @else {
+      <app-progress-entry
+        [userBookId]="item().id"
+        [currentPage]="item().currentPage"
+        [pageCount]="item().pageCount"
+        (logged)="logged.emit($event)"
+      />
+    }
+  </div>
+</article>

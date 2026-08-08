@@ -1,0 +1,63 @@
+.reading-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  padding: var(--app-space-2);
+  /* Grid rows already stretch the cards; this keeps their insides from collapsing upwards. */
+  height: 100%;
+}
+
+.reading-card__book {
+  display: flex;
+  gap: var(--app-space-2);
+  align-items: flex-start;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover .reading-card__title {
+    text-decoration: underline;
+  }
+}
+
+.reading-card__cover {
+  width: 48px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: var(--p-border-radius-sm, 4px);
+  flex-shrink: 0;
+}
+
+.reading-card__cover--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--p-content-border-color);
+  color: var(--p-text-muted-color);
+}
+
+.reading-card__title-block {
+  min-width: 0;
+}
+
+.reading-card__title {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.reading-card__author {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--p-text-muted-color);
+}
+
+/*
+ * The same trick the shelf card uses: one block carries `margin-top: auto` so the bar and the
+ * entry field sit on the bottom edge of every card, whether the title above took one line or three.
+ */
+.reading-card__footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+}
