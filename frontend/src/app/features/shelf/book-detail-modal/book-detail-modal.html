@@ -90,6 +90,41 @@
           </div>
         </div>
 
+        <!--
+          Lives here, with the status it belongs to, because it is a field on this reader's entry
+          and this section's button is what saves it. Keyed to the status the user has just
+          picked rather than the stored one, so "I'm reading this, from page 200" is a single
+          save instead of one to reveal the field and another to fill it in.
+        -->
+        @if (showStartPage()) {
+          <div class="shelf-modal__field shelf-modal__field--narrow">
+            <label for="modal-start-page">Start page</label>
+            <input
+              pInputText
+              id="modal-start-page"
+              type="number"
+              formControlName="startPage"
+              min="0"
+              [attr.max]="maxStartPage()"
+              inputmode="numeric"
+              [attr.aria-describedby]="'modal-start-page-hint'"
+            />
+            @if (form.controls.startPage.invalid) {
+              <small id="modal-start-page-hint" class="shelf-modal__error">
+                @if (maxStartPage(); as max) {
+                  That is past page {{ max }}, which is as far as this book's length allows.
+                } @else {
+                  The start page cannot be negative.
+                }
+              </small>
+            } @else {
+              <small id="modal-start-page-hint" class="shelf-modal__hint">
+                {{ startPageHint() }}
+              </small>
+            }
+          </div>
+        }
+
         <div class="shelf-modal__row">
           <div class="shelf-modal__field">
             <label for="modal-started">Started</label>
@@ -127,7 +162,7 @@
             type="submit"
             [label]="justSaved() ? 'Saved' : 'Save changes'"
             [icon]="justSaved() ? 'pi pi-check-circle' : 'pi pi-check'"
-            [disabled]="!form.dirty"
+            [disabled]="!form.dirty || form.invalid"
             [loading]="saving()"
           />
         </div>
@@ -149,6 +184,22 @@
             [currentPage]="item.currentPage"
             [pageCount]="item.pageCount"
             (logged)="onProgressLogged($event)"
+          />
+
+        </section>
+      }
+
+      <!--
+        Any book with days behind it, whatever its status now — a finished book's history is
+        worth looking at too. Collapsed, and not fetched until it is opened.
+      -->
+      @if (showHistory()) {
+        <section class="shelf-modal__section">
+          <app-reading-history
+            [userBookId]="item.id"
+            [entryCount]="item.logCount"
+            [reloadToken]="historyVersion()"
+            (changed)="onHistoryChanged($event)"
           />
         </section>
       }

@@ -1,6 +1,7 @@
 using System.Globalization;
 using Bookshelf.Application.Books;
 using Bookshelf.Application.Common.Exceptions;
+using Bookshelf.Application.ReadingLogs;
 using Bookshelf.Domain.Entities;
 using Bookshelf.Domain.Enums;
 
@@ -9,6 +10,7 @@ namespace Bookshelf.Application.Shelf;
 public class ShelfService(
     IBookRepository bookRepository,
     IShelfRepository shelfRepository,
+    IReadingLogRepository readingLogRepository,
     IBookService bookService,
     IOpenLibraryClient openLibraryClient) : IShelfService
 {
@@ -28,7 +30,9 @@ public class ShelfService(
         var existing = await shelfRepository.GetAsync(userId, book.Id, cancellationToken);
         if (existing is not null)
         {
-            return existing.ToShelfItemDto();
+            var logCount = await readingLogRepository.GetCountAsync(existing.Id, cancellationToken);
+
+            return existing.ToShelfItemDto(logCount);
         }
 
         return await AddShelfEntryAsync(userId, book, cancellationToken);
@@ -65,7 +69,14 @@ public class ShelfService(
     {
         var shelf = await shelfRepository.GetShelfAsync(userId, status, ParseSort(sort), cancellationToken);
 
-        return shelf.Select(userBook => userBook.ToShelfItemDto()).ToArray();
+        // One grouped count for the whole shelf rather than a count per book: the modal needs to
+        // know whether a reading history exists before it offers to open one, and a book with no
+        // entries shows no history section at all.
+        var logCounts = await readingLogRepository.GetCountsAsync(userId, cancellationToken);
+
+        return shelf
+            .Select(userBook => userBook.ToShelfItemDto(logCounts.GetValueOrDefault(userBook.Id)))
+            .ToArray();
     }
 
     public async Task<ShelfCountsDto> GetCountsAsync(Guid userId, CancellationToken cancellationToken)
@@ -85,6 +96,7 @@ public class ShelfService(
             ?? throw new NotFoundException("Book not found on your shelf.");
 
         var today = ResolveToday(request.Today);
+        var previousStatus = userBook.Status;
 
         if (request.Status is { } status)
         {
@@ -115,9 +127,72 @@ public class ShelfService(
 
         ApplyPageCount(userBook.Book, request.PageCount);
 
+        if (request.StartPage is { } startPage)
+        {
+            userBook.StartPage = ParseStartPage(startPage);
+        }
+
+        var logCount = await ApplyPositionAsync(userBook, previousStatus, request, cancellationToken);
+
         await shelfRepository.UpdateAsync(userBook, cancellationToken);
 
-        return userBook.ToShelfItemDto();
+        return userBook.ToShelfItemDto(logCount);
+    }
+
+    /// <summary>
+    /// Recomputes the reading position when this save could have moved it, and returns the number
+    /// of log entries either way.
+    /// <para>
+    /// Two things move it. Setting the starting page is the obvious one — a book entered at page
+    /// 200 must show page 200 straight away, without a fabricated log entry claiming 200 pages
+    /// were read in a day. The second is a book coming back out of "want to read": that status
+    /// clears the position while keeping the logs, so the position has to be rebuilt from those
+    /// logs at the moment the book is picked up again. The reader gets their real page back
+    /// rather than starting from zero with a history that says otherwise.
+    /// </para>
+    /// <para>
+    /// A book moving <em>into</em> "want to read" needs nothing here: the transition above has
+    /// already cleared the position, and the recomputation deliberately skips that status.
+    /// </para>
+    /// </summary>
+    private async Task<int> ApplyPositionAsync(
+        UserBook userBook,
+        ReadingStatus previousStatus,
+        UpdateUserBookRequest request,
+        CancellationToken cancellationToken)
+    {
+        var pickedBackUp = previousStatus == ReadingStatus.WantToRead
+            && userBook.Status != ReadingStatus.WantToRead;
+
+        if (request.StartPage is null && !pickedBackUp)
+        {
+            return await readingLogRepository.GetCountAsync(userBook.Id, cancellationToken);
+        }
+
+        var logs = await readingLogRepository.GetForUserBookAsync(userBook.Id, cancellationToken);
+        var loggedPages = logs.Sum(log => log.PagesRead);
+
+        // Checked before it is written, so a starting page that would push the reader past the
+        // last page is refused outright rather than half applied.
+        ReadingPosition.EnsureWithinBook(userBook, loggedPages);
+        ReadingPosition.Apply(userBook, loggedPages);
+
+        return logs.Count;
+    }
+
+    /// <summary>
+    /// A book cannot be started from before its own beginning. There is no upper bound here —
+    /// that is <see cref="ReadingPosition.EnsureWithinBook"/>'s job, because the limit depends on
+    /// what has been logged as well.
+    /// </summary>
+    private static int ParseStartPage(int startPage)
+    {
+        if (startPage < 0)
+        {
+            throw new ValidationException("Start page cannot be negative.");
+        }
+
+        return startPage;
     }
 
     public async Task RemoveAsync(Guid userId, Guid userBookId, CancellationToken cancellationToken)
@@ -172,6 +247,13 @@ public class ShelfService(
                 userBook.StartedAt = null;
                 userBook.FinishedAt = null;
                 userBook.CurrentPage = null;
+
+                // StartPage survives on purpose, and so do the logs. Both describe a reading that
+                // really happened — the logs are days on the streak and the activity grid, and
+                // the starting page is where this copy of the book was picked up. Wiping them to
+                // match "nothing holds any more" would rewrite history the reader can see
+                // elsewhere; instead the position is rebuilt from them if the book is started
+                // again, and the reader who truly wants a clean slate deletes the entries.
                 break;
         }
     }
@@ -348,7 +430,8 @@ public class ShelfService(
 
         await shelfRepository.AddAsync(userBook, cancellationToken);
 
-        return userBook.ToShelfItemDto();
+        // A shelf entry that has just been created cannot have a reading history behind it.
+        return userBook.ToShelfItemDto(0);
     }
 
     /// <summary>Enriching a book must never be the reason adding it fails.</summary>

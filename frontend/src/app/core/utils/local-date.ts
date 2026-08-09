@@ -14,3 +14,19 @@ export function localDate(daysAgo = 0): string {
 
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
+
+/**
+ * A `yyyy-MM-dd` day rendered for reading, e.g. `9 Aug 2026`.
+ *
+ * Parsed by parts for the mirror image of the reason above: `new Date('2026-08-09')` is read as
+ * UTC midnight, so anyone in a timezone behind UTC would be shown the day before the one stored.
+ */
+export function formatLocalDate(value: string): string {
+  const [year, month, day] = value.split('-').map(Number);
+
+  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}

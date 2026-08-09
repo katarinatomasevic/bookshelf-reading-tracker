@@ -5,7 +5,13 @@ namespace Bookshelf.Application.Shelf;
 /// <summary>
 /// One book on a user's shelf. Carries the book's own metadata as well, so the shelf page
 /// renders from a single request; Note and Subjects are included because the shelf modal and
-/// the client-side shelf search (next phase) read them without another round trip.
+/// the client-side shelf search read them without another round trip.
+/// <para>
+/// <see cref="LogCount"/> is the number of reading log entries behind this book. It travels with
+/// the shelf so the modal can decide whether to offer a reading history at all, and name the
+/// number of entries in the heading, without fetching the entries themselves — they are loaded
+/// only if the reader actually opens the section.
+/// </para>
 /// </summary>
 public record ShelfItemDto(
     Guid Id,
@@ -19,7 +25,9 @@ public record ShelfItemDto(
     ReadingStatus Status,
     int? Rating,
     string? Note,
+    int StartPage,
     int? CurrentPage,
     DateOnly? StartedAt,
     DateOnly? FinishedAt,
-    DateTimeOffset AddedAt);
+    DateTimeOffset AddedAt,
+    int LogCount);

@@ -40,6 +40,12 @@
   color: var(--p-message-error-color, #b91c1c);
 }
 
+/* Muted rather than green: this is a receipt, not an achievement. */
+.progress-entry__saved {
+  color: var(--p-text-muted-color, #71717a);
+  font-variant-numeric: tabular-nums;
+}
+
 @media (max-width: 480px) {
   .progress-entry__fields {
     flex-direction: column;
