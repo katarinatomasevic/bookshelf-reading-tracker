@@ -7,7 +7,7 @@ import { MessageModule } from 'primeng/message';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { LogProgressRequest, LogProgressResponse } from '../../../core/models/reading-log.model';
 import { ReadingLogService } from '../../../core/services/reading-log.service';
-import { localDate } from '../../../core/utils/local-date';
+import { formatLocalDate, localDate } from '../../../core/utils/local-date';
 
 type EntryMode = 'pagesRead' | 'toPage';
 
@@ -45,6 +45,18 @@ export class ProgressEntry {
 
   protected readonly saving = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
+
+  /**
+   * What was recorded, named by day and by that day's running total.
+   *
+   * Shown after every entry rather than only when two entries merged. A message that appeared
+   * solely in the merging case would itself suggest something unusual had happened; the same
+   * sentence every time lets the number quietly do the explaining — a reader who logs 10 pages
+   * and is told the day now holds 45 has learned the one-entry-per-day rule without being
+   * lectured about it. It matters most where this component sits on the dashboard, which has no
+   * reading history to open at all.
+   */
+  protected readonly savedMessage = signal<string | null>(null);
 
   /** Mirrors the backend window; the date input refuses what the API would reject anyway. */
   private readonly maxBackdatedDays = 30;
@@ -132,6 +144,10 @@ export class ProgressEntry {
     this.mode.set(mode);
     this.form.controls.amount.reset(null);
     this.errorMessage.set(null);
+
+    // The confirmation named a specific day and total; once the reader starts composing a
+    // different entry it is answering a question they are no longer asking.
+    this.savedMessage.set(null);
   }
 
   /**
@@ -140,6 +156,7 @@ export class ProgressEntry {
    */
   protected onDateChange(value: string): void {
     this.date.set(value);
+    this.savedMessage.set(null);
 
     if (!this.isToday() && this.mode() === 'toPage') {
       this.form.controls.mode.setValue('pagesRead');
@@ -165,10 +182,15 @@ export class ProgressEntry {
 
     this.saving.set(true);
     this.errorMessage.set(null);
+    this.savedMessage.set(null);
 
     this.readingLogService.logProgress(request).subscribe({
       next: (response) => {
         this.saving.set(false);
+
+        this.savedMessage.set(
+          `Saved — ${response.dayTotal} ${response.dayTotal === 1 ? 'page' : 'pages'} for ${formatLocalDate(date)}.`,
+        );
 
         // The date stays as it was: someone catching up on a forgotten week logs several books
         // for the same day in a row.

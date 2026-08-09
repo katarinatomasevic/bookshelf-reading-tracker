@@ -10,7 +10,8 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -26,6 +27,7 @@ import { ReadingStatus, ShelfItem, UpdateShelfItemRequest } from '../../../core/
 import { localDate } from '../../../core/utils/local-date';
 import { ProgressEntry } from '../../../shared/components/progress-entry/progress-entry';
 import { ReadingProgress } from '../../../shared/components/reading-progress/reading-progress';
+import { ReadingHistory } from '../reading-history/reading-history';
 import { ShelfService } from '../shelf.service';
 
 /**
@@ -57,6 +59,7 @@ import { ShelfService } from '../shelf.service';
     TextareaModule,
     ProgressEntry,
     ReadingProgress,
+    ReadingHistory,
   ],
   providers: [ConfirmationService],
   templateUrl: './book-detail-modal.html',
@@ -102,16 +105,105 @@ export class BookDetailModal {
     startedAt: [''],
     finishedAt: [''],
     pageCount: [null as number | null],
+    startPage: [0],
   });
 
   /** Reading progress is entered against what the server has stored, not against an unsaved
    *  status the user has only picked in the dropdown — the log is written immediately. */
   protected readonly showProgress = computed(() => this.item()?.status === ReadingStatus.Reading);
 
+
+  /**
+   * A book nobody has logged a day against has no history to offer, and an empty collapsed
+   * section would be a promise the modal cannot keep. The count rides along with the shelf
+   * entry, so this costs no request — which is the whole reason it is on the entry at all.
+   */
+  protected readonly showHistory = computed(() => (this.item()?.logCount ?? 0) > 0);
+
+  /**
+   * Bumped after every logged day, to tell the history section that what it holds is out of date.
+   * A plain counter rather than the entry count, because a second entry on the same day raises no
+   * count at all — it adds to the row already there, and that row's number still has to change on
+   * screen.
+   */
+  protected readonly historyVersion = signal(0);
+
+  /**
+   * The status the user has picked, not the one on the server. That is what makes the start page
+   * appear in the same save that sets the book to Reading, instead of demanding one save to
+   * reveal the field and a second to fill it in.
+   */
+  private readonly statusValue = toSignal(this.form.controls.status.valueChanges, {
+    initialValue: this.form.controls.status.value,
+  });
+
+  protected readonly showStartPage = computed(() => this.statusValue() === ReadingStatus.Reading);
+
+  /**
+   * Pages logged for this book, derived rather than fetched: the position is by definition the
+   * starting page plus everything logged, so the difference is that sum. No request needed.
+   */
+  private readonly loggedPages = computed(() => {
+    const item = this.item();
+    if (!item || item.currentPage === null) {
+      return 0;
+    }
+
+    return Math.max(0, item.currentPage - item.startPage);
+  });
+
+  /**
+   * The highest starting page that still leaves room for what has already been logged — the same
+   * rule the backend enforces, mirrored here so the reader learns it before pressing Save rather
+   * than from a rejected request. Null when the book's length is unknown: then there is nothing
+   * to run past.
+   */
+  protected readonly maxStartPage = computed(() => {
+    const pageCount = this.item()?.pageCount;
+    if (!pageCount) {
+      return null;
+    }
+
+    return Math.max(0, pageCount - this.loggedPages());
+  });
+
+  protected readonly startPageHint = computed(() => {
+    const max = this.maxStartPage();
+    if (max === null) {
+      return 'Already reading this one? Enter the page you started from.';
+    }
+
+    const logged = this.loggedPages();
+    if (logged === 0) {
+      return `Already reading this one? Enter the page you started from — ${max} at most.`;
+    }
+
+    return `${max} at most: ${logged} ${logged === 1 ? 'page is' : 'pages are'} already logged for this book.`;
+  });
+
   constructor() {
     // The parent looks the item up in the shelf signal by id, so this also runs after a save:
     // the form is refilled from what the server actually stored and goes pristine again.
     effect(() => this.syncForm(this.item()));
+
+    // Kept in step with the book on screen: the ceiling moves as pages are logged, and a stale
+    // one would either refuse a valid page or wave through one the server will reject.
+    effect(() => {
+      const max = this.maxStartPage();
+      const control = this.form.controls.startPage;
+
+      // Dropped entirely while the field is hidden. A rule enforced on a control nobody can see
+      // would grey out Save with no way to find out why.
+      if (!this.showStartPage()) {
+        control.clearValidators();
+      } else {
+        control.setValidators(
+          max === null ? [Validators.min(0)] : [Validators.min(0), Validators.max(max)],
+        );
+      }
+
+      control.updateValueAndValidity({ emitEvent: false });
+    });
 
     inject(DestroyRef).onDestroy(() => this.clearSavedTimer());
   }
@@ -152,6 +244,7 @@ export class BookDetailModal {
     this.refreshIfPristine(controls.startedAt, item.startedAt ?? '');
     this.refreshIfPristine(controls.finishedAt, item.finishedAt ?? '');
     this.refreshIfPristine(controls.pageCount, item.pageCount);
+    this.refreshIfPristine(controls.startPage, item.startPage);
   }
 
   /**
@@ -166,6 +259,7 @@ export class BookDetailModal {
       startedAt: item.startedAt ?? '',
       finishedAt: item.finishedAt ?? '',
       pageCount: item.pageCount,
+      startPage: item.startPage,
     });
     this.errorMessage.set(null);
   }
@@ -320,6 +414,9 @@ export class BookDetailModal {
   protected onProgressLogged(response: LogProgressResponse): void {
     this.shelfService.applyItem(response.item);
 
+    // A day was written, so whatever the history section is showing is now behind.
+    this.historyVersion.update((version) => version + 1);
+
     if (!response.bookCompleted) {
       return;
     }
@@ -334,6 +431,15 @@ export class BookDetailModal {
       rejectButtonProps: { severity: 'secondary', text: true },
       accept: () => this.markAsRead(response.item.id),
     });
+  }
+
+  /**
+   * A correction to the reading history moves the current page, so the shelf entry the server
+   * returned goes straight back into the signal — the progress bar above updates from the same
+   * source it always reads, with no second request.
+   */
+  protected onHistoryChanged(item: ShelfItem): void {
+    this.shelfService.applyItem(item);
   }
 
   /**
@@ -421,6 +527,12 @@ export class BookDetailModal {
 
     if (controls.pageCount.dirty && controls.pageCount.value) {
       request.pageCount = controls.pageCount.value;
+    }
+
+    // 0 is a real value here — "I started from the beginning" — so it is sent like any other,
+    // with no sentinel meaning attached to it.
+    if (controls.startPage.dirty) {
+      request.startPage = controls.startPage.value ?? 0;
     }
 
     return request;

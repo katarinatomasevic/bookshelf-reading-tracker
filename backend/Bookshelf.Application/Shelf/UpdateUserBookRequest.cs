@@ -18,6 +18,11 @@ namespace Bookshelf.Application.Shelf;
 /// is accepted only to fill a gap Open Library left — never to overwrite a value another user
 /// may already rely on.
 /// </para>
+/// <para>
+/// <see cref="StartPage"/> is where this reader began — 200 for a book entered while already half
+/// read. Setting it recomputes the current position, since the position is the starting page plus
+/// everything logged since. It needs no sentinel of its own: 0 already means "from the beginning".
+/// </para>
 /// </summary>
 public record UpdateUserBookRequest(
     ReadingStatus? Status,
@@ -26,4 +31,5 @@ public record UpdateUserBookRequest(
     string? StartedAt,
     string? FinishedAt,
     int? PageCount,
+    int? StartPage,
     DateOnly? Today);

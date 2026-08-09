@@ -1,0 +1,152 @@
+<section class="reading-history">
+  <!-- A button, not a heading with a click handler: this toggles, so it must be reachable by
+       keyboard and announce whether it is open. -->
+  <button
+    type="button"
+    class="reading-history__toggle"
+    [attr.aria-expanded]="expanded()"
+    aria-controls="reading-history-panel"
+    (click)="toggle()"
+  >
+    <i class="pi" [class.pi-chevron-right]="!expanded()" [class.pi-chevron-down]="expanded()"></i>
+    <span>Reading history</span>
+    <span class="reading-history__count">
+      {{ entryCount() }} {{ entryCount() === 1 ? 'entry' : 'entries' }}
+    </span>
+  </button>
+
+  @if (expanded()) {
+    <div id="reading-history-panel" class="reading-history__panel">
+      @if (loading()) {
+        <p class="reading-history__status">Loading…</p>
+      }
+
+      @if (errorMessage(); as message) {
+        <p-message severity="error" [text]="message" />
+      }
+
+      @if (!loading() && entries().length > 0) {
+        <!-- The scroll lives on this list rather than on the dialog, so the modal never grows
+             past its own height however long the history gets. -->
+        <ul class="reading-history__list" [class.reading-history__list--scroll]="showingAll()">
+          @for (entry of visibleEntries(); track entry.id) {
+            <li class="reading-history__item">
+              <div class="reading-history__row">
+                <span class="reading-history__date">{{ formatDate(entry.date) }}</span>
+
+                @if (editingId() === entry.id) {
+                  <input
+                    pInputText
+                    type="number"
+                    min="1"
+                    class="reading-history__input"
+                    [(ngModel)]="editingPages"
+                    [attr.aria-label]="'Pages read on ' + formatDate(entry.date)"
+                    (keydown.enter)="saveEdit(entry)"
+                    (keydown.escape)="cancelEdit()"
+                  />
+
+                  <div class="reading-history__actions">
+                    <p-button
+                      type="button"
+                      icon="pi pi-check"
+                      severity="success"
+                      [text]="true"
+                      [rounded]="true"
+                      size="small"
+                      ariaLabel="Save correction"
+                      [loading]="busyId() === entry.id"
+                      (onClick)="saveEdit(entry)"
+                    />
+                    <p-button
+                      type="button"
+                      icon="pi pi-times"
+                      severity="secondary"
+                      [text]="true"
+                      [rounded]="true"
+                      size="small"
+                      ariaLabel="Cancel"
+                      (onClick)="cancelEdit()"
+                    />
+                  </div>
+                } @else {
+                  <span class="reading-history__pages">
+                    {{ entry.pagesRead }} {{ entry.pagesRead === 1 ? 'page' : 'pages' }}
+                  </span>
+
+                  <div class="reading-history__actions">
+                    <p-button
+                      type="button"
+                      icon="pi pi-pencil"
+                      severity="secondary"
+                      [text]="true"
+                      [rounded]="true"
+                      size="small"
+                      ariaLabel="Edit entry"
+                      [disabled]="busyId() !== null"
+                      (onClick)="startEdit(entry)"
+                    />
+                    <p-button
+                      type="button"
+                      icon="pi pi-trash"
+                      severity="danger"
+                      [text]="true"
+                      [rounded]="true"
+                      size="small"
+                      ariaLabel="Delete entry"
+                      [disabled]="busyId() !== null"
+                      (onClick)="confirmRemove(entry)"
+                    />
+                  </div>
+                }
+              </div>
+
+              <!-- Deleting reduces the current page, so it says so before it happens rather
+                   than leaving the reader to discover it on the progress bar. -->
+              @if (pendingRemoval()?.id === entry.id) {
+                <div class="reading-history__confirm">
+                  <span>Delete this entry? Your current page will go back by
+                    {{ entry.pagesRead }}.</span>
+                  <div class="reading-history__actions">
+                    <p-button
+                      type="button"
+                      label="Delete"
+                      severity="danger"
+                      size="small"
+                      [loading]="busyId() === entry.id"
+                      (onClick)="remove(entry)"
+                    />
+                    <p-button
+                      type="button"
+                      label="Cancel"
+                      severity="secondary"
+                      [text]="true"
+                      size="small"
+                      (onClick)="cancelRemove()"
+                    />
+                  </div>
+                </div>
+              }
+            </li>
+          }
+        </ul>
+
+        @if (hasMore()) {
+          <button
+            type="button"
+            class="reading-history__more"
+            (click)="showingAll.set(!showingAll())"
+          >
+            {{ showingAll() ? 'Show fewer' : 'Show all ' + entries().length + ' entries' }}
+          </button>
+        }
+      }
+
+      <!-- Reachable only if every entry was deleted while the section stayed open: the parent
+           does not render this section at all for a book with no history. -->
+      @if (!loading() && entries().length === 0 && !errorMessage()) {
+        <p class="reading-history__status">No entries left for this book.</p>
+      }
+    </div>
+  }
+</section>

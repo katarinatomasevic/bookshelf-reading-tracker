@@ -12,5 +12,12 @@ namespace Bookshelf.Application.ReadingLogs;
 /// may be wrong, or the number may simply have been mistyped — so the client asks first.
 /// It is always <c>false</c> when the page count is unknown, since there is no end to reach.
 /// </para>
+/// <para>
+/// <see cref="DayTotal"/> is everything now recorded for that date, which is not always what was
+/// just entered: a second sitting with the same book adds to the day already there rather than
+/// starting a new one. Without this number the client could only report back what the reader
+/// typed, and the one-entry-per-day rule would stay invisible until they opened the history and
+/// wondered why three entries had become one row.
+/// </para>
 /// </summary>
-public record LogProgressResponse(ShelfItemDto Item, bool BookCompleted);
+public record LogProgressResponse(ShelfItemDto Item, bool BookCompleted, int DayTotal);

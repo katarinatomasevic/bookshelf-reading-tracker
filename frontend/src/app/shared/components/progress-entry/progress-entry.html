@@ -71,4 +71,10 @@
   @if (errorMessage(); as message) {
     <p-message severity="error" [text]="message" />
   }
+
+  <!-- Deliberately a quiet line rather than a success banner: it confirms an action the reader
+       already expected to work, and its real job is to name the day's total. -->
+  @if (savedMessage(); as message) {
+    <small class="progress-entry__saved" role="status">{{ message }}</small>
+  }
 </div>

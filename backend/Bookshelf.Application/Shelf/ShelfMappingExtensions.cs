@@ -4,7 +4,14 @@ namespace Bookshelf.Application.Shelf;
 
 internal static class ShelfMappingExtensions
 {
-    public static ShelfItemDto ToShelfItemDto(this UserBook userBook) => new(
+    /// <summary>
+    /// The log count is passed in rather than read off the entity. UserBook has no collection of
+    /// logs on purpose: giving it one would tempt every shelf query into loading every reading
+    /// log a user has ever written, only to count them. The callers each have the cheapest source
+    /// at hand — a grouped count for the whole shelf, the loaded rows when a position has just
+    /// been recomputed, a single count otherwise.
+    /// </summary>
+    public static ShelfItemDto ToShelfItemDto(this UserBook userBook, int logCount) => new(
         userBook.Id,
         userBook.BookId,
         userBook.Book.OpenLibraryId,
@@ -16,8 +23,10 @@ internal static class ShelfMappingExtensions
         userBook.Status,
         userBook.Rating,
         userBook.Note,
+        userBook.StartPage,
         userBook.CurrentPage,
         userBook.StartedAt,
         userBook.FinishedAt,
-        userBook.AddedAt);
+        userBook.AddedAt,
+        logCount);
 }

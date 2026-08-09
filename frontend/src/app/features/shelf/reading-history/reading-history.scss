@@ -1,0 +1,117 @@
+.reading-history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-1);
+}
+
+/* Styled as a disclosure row rather than a button: it opens a section, it does not perform an
+   action, and a solid button here would compete with the two that actually save something. */
+.reading-history__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-1);
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.reading-history__count {
+  font-weight: 400;
+  color: var(--p-text-muted-color, #71717a);
+}
+
+.reading-history__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-1);
+}
+
+.reading-history__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The fixed height is what keeps the modal from growing with the history. Only applied once the
+   whole list is shown — five entries need no scroll area. */
+.reading-history__list--scroll {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.reading-history__item {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--p-content-border-color, #e5e7eb);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.reading-history__row {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-1);
+  min-height: 2.25rem;
+}
+
+.reading-history__date {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9rem;
+}
+
+.reading-history__pages {
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--p-text-muted-color, #71717a);
+}
+
+.reading-history__input {
+  width: 6rem;
+}
+
+.reading-history__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.reading-history__confirm {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--app-space-1);
+  flex-wrap: wrap;
+  padding: 0.5rem 0 0.25rem;
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color, #71717a);
+}
+
+.reading-history__more,
+.reading-history__status {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color, #71717a);
+}
+
+.reading-history__more {
+  align-self: flex-start;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+}

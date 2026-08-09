@@ -148,6 +148,10 @@
   color: var(--p-text-muted-color, #71717a);
 }
 
+.shelf-modal__error {
+  color: var(--p-message-error-color, #b91c1c);
+}
+
 .shelf-modal__counter {
   align-self: flex-end;
   color: var(--p-text-muted-color, #71717a);

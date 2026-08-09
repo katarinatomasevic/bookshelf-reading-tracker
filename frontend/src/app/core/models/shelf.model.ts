@@ -17,10 +17,18 @@ export interface ShelfItem extends BookCardData {
   status: ReadingStatus;
   rating: number | null;
   note: string | null;
+  /** Where this reader began; 0 unless the book was entered part-read. */
+  startPage: number;
   currentPage: number | null;
   startedAt: string | null;
   finishedAt: string | null;
   addedAt: string;
+  /**
+   * How many reading log entries this book has. Comes with the shelf so the modal knows whether
+   * to offer a reading history without fetching one — the entries themselves are loaded only if
+   * the reader opens the section.
+   */
+  logCount: number;
 }
 
 /**
@@ -36,6 +44,8 @@ export interface UpdateShelfItemRequest {
   startedAt?: string;
   finishedAt?: string;
   pageCount?: number;
+  /** Needs no clearing signal: 0 is itself the "from the beginning" value. */
+  startPage?: number;
   today?: string;
 }
 

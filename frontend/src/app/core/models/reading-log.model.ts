@@ -20,4 +20,29 @@ export interface LogProgressRequest {
 export interface LogProgressResponse {
   item: ShelfItem;
   bookCompleted: boolean;
+  /**
+   * Everything now recorded for that date — not necessarily what was just entered, since a
+   * second sitting on the same day adds to the entry already there. It is what lets the
+   * confirmation name the day's real total instead of repeating the number back.
+   */
+  dayTotal: number;
+}
+
+/**
+ * One day in a book's reading history. No `createdAt`: for a backdated entry that is a different
+ * day from the one being reported, and showing both would raise a question the list need not ask.
+ */
+export interface ReadingLogEntry {
+  id: string;
+  date: string;
+  pagesRead: number;
+}
+
+/**
+ * Corrections carry the page count and nothing else — the date is deliberately not editable,
+ * because moving an entry onto a day that already has one would force a merge nobody asked for.
+ * A wrong day is fixed by deleting the entry and adding it again.
+ */
+export interface UpdateReadingLogRequest {
+  pagesRead: number;
 }
