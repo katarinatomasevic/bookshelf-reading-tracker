@@ -16,5 +16,53 @@ services:
       timeout: 5s
       retries: 5
 
+  # Turns text into 384-dimension vectors. Kept out of the .NET API because the models worth
+  # using live in Python; the API will call it over HTTP.
+  embedding:
+    build:
+      context: ./embedding
+    restart: unless-stopped
+    ports:
+      # Published to the host, unlike what the plan originally called for. In development the
+      # .NET API runs on the host with `dotnet run`, not in a container, so an internal-only port
+      # would leave it unable to reach this service at all — and it would also make the manual
+      # /embed check impossible without `docker compose exec`.
+      - "8000:8000"
+    healthcheck:
+      # python -c rather than curl: the slim base image has no curl, and installing one just to
+      # answer a healthcheck adds a package for nothing.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      # Generous, because the container is only healthy once the model is in memory. Loading
+      # all-MiniLM-L6-v2 takes a few seconds on a cold container and the default 0s start_period
+      # would mark it unhealthy before it ever finished starting.
+      start_period: 90s
+
+  # One-off job that loads corpus.json into the Book table and embeds it. Behind a profile so
+  # that a plain `docker compose up` never runs it; start it explicitly with
+  #   docker compose --profile seed run --rm seed
+  seed:
+    build:
+      context: ./embedding
+    profiles: ["seed"]
+    depends_on:
+      db:
+        condition: service_healthy
+      embedding:
+        condition: service_healthy
+    environment:
+      # Inside the Compose network the database answers on its own service name and the internal
+      # port 5432 — not the 5433 the host sees.
+      SEED_DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      EMBEDDING_URL: http://embedding:8000
+      CORPUS_PATH: /app/corpus.json
+    volumes:
+      # corpus.json is produced on the host by harvest.py and mounted read-only rather than
+      # copied into the image, so re-running the harvest does not mean rebuilding.
+      - ./corpus.json:/app/corpus.json:ro
+    command: ["python", "-m", "seed.seed"]
+
 volumes:
   postgres_data:

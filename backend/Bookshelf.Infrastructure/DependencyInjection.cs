@@ -20,7 +20,10 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("Default")
             ?? throw new InvalidOperationException("Connection string 'Default' is not configured.");
 
-        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+        // UseVector() registers the pgvector type mapping with Npgsql; without it EF cannot read
+        // or write Book.Embedding at all.
+        services.AddDbContext<AppDbContext>(options =>
+            options.UseNpgsql(connectionString, npgsql => npgsql.UseVector()));
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IBookRepository, BookRepository>();

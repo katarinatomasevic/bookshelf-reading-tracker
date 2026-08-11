@@ -1,0 +1,12 @@
+# The corpus is produced by harvest.py on the host and mounted into the seed container at run
+# time. Copying a 5 MB JSON file into the image would rebuild every layer below it on each
+# harvest, for no benefit.
+corpus.json
+
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
