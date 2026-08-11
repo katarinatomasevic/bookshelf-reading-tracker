@@ -72,9 +72,18 @@ public partial class BookService(
     private async Task<BookDetailsDto> MapStoredBookAsync(
         Book book, Guid? userId, CancellationToken cancellationToken)
     {
-        var ratings = book.OpenLibraryId is { } openLibraryId
-            ? await GetRatingsCachedAsync(openLibraryId, cancellationToken)
-            : new OpenLibraryRatingsData(null, null);
+        // Both calls may reach Open Library and neither depends on the other, so they run at the
+        // same time — the same two-wave reasoning the live details path uses. Sequentially this
+        // page would pay for two round trips instead of one.
+        var ratingsTask = book.OpenLibraryId is { } openLibraryId
+            ? GetRatingsCachedAsync(openLibraryId, cancellationToken)
+            : Task.FromResult(new OpenLibraryRatingsData(null, null));
+        var descriptionTask = GetDescriptionAsync(book, cancellationToken);
+
+        await Task.WhenAll(ratingsTask, descriptionTask);
+
+        var ratings = ratingsTask.Result;
+        var description = descriptionTask.Result;
 
         var isOnShelf = userId is { } id
             && await shelfRepository.GetAsync(id, book.Id, cancellationToken) is not null;
@@ -83,7 +92,7 @@ public partial class BookService(
             book.OpenLibraryId,
             book.Title,
             book.Author,
-            book.Description,
+            description,
             book.CoverId,
             book.Subjects,
             ratings.Average,
@@ -140,6 +149,66 @@ public partial class BookService(
         cache.Set(cacheKey, details, CacheOptionsFor(details.AverageRating));
 
         return details;
+    }
+
+    /// <summary>
+    /// The description of a stored book, fetched from Open Library the first time it is needed
+    /// and written back so that it is needed only once.
+    ///
+    /// Why this exists at all: the AI phase seeded ~15.5K books from Open Library's search API,
+    /// which does not return descriptions. Fetching them during the harvest would have meant one
+    /// request per book — some four hours of traffic against a volunteer-run service — for text
+    /// that never enters an embedding anyway (embeddings are built from title, author and
+    /// subjects on purpose). So the corpus was stored without descriptions, and the cost moved
+    /// here: one request for a book somebody actually opened, paid once in its lifetime.
+    ///
+    /// A failure is not allowed to cost the page, exactly as with ratings. The book still has a
+    /// title, author, cover and subjects; a missing paragraph is not a reason to show an error.
+    /// </summary>
+    private async Task<string?> GetDescriptionAsync(Book book, CancellationToken cancellationToken)
+    {
+        if (!string.IsNullOrWhiteSpace(book.Description) || book.OpenLibraryId is not { } workKey)
+        {
+            return book.Description;
+        }
+
+        var cacheKey = $"ol:description:{workKey}";
+        if (cache.TryGetValue<string>(cacheKey, out var cached))
+        {
+            // Empty string is the cached form of "Open Library has none either", stored instead
+            // of null so that a cache hit is never confused with a cache miss.
+            return string.IsNullOrEmpty(cached) ? null : cached;
+        }
+
+        string? description;
+        try
+        {
+            description = (await openLibraryClient.GetWorkAsync(workKey, cancellationToken)).Description;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Not cached: a network failure says nothing about whether a description exists, and
+            // caching it would keep the book blank long after Open Library came back.
+            //
+            // A cancellation is let through rather than swallowed: it means the reader closed the
+            // page, and there is no point finishing the work of rendering it.
+            return null;
+        }
+
+        cache.Set(cacheKey, description ?? string.Empty, new MemoryCacheEntryOptions
+        {
+            // Unlike a rating, a description is written once by a volunteer and then sits there,
+            // so there is no reason to re-check it sooner than any other Open Library data.
+            AbsoluteExpirationRelativeToNow = FullCacheDuration,
+            Size = 1,
+        });
+
+        if (!string.IsNullOrWhiteSpace(description))
+        {
+            await bookRepository.FillMissingDescriptionAsync(book.Id, description, cancellationToken);
+        }
+
+        return description;
     }
 
     private async Task<OpenLibraryRatingsData> GetRatingsCachedAsync(

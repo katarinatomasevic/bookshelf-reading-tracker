@@ -15,7 +15,9 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
             ?? "Host=localhost;Port=5433;Database=bookshelf;Username=bookshelf;Password=bookshelf";
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        optionsBuilder.UseNpgsql(connectionString);
+        // Must mirror DependencyInjection.AddInfrastructure: the design-time context needs the
+        // same pgvector mapping, otherwise `dotnet ef` cannot build a model containing Vector.
+        optionsBuilder.UseNpgsql(connectionString, npgsql => npgsql.UseVector());
 
         return new AppDbContext(optionsBuilder.Options);
     }

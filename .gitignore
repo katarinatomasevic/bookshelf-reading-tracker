@@ -151,3 +151,9 @@ corpus.json
 # .NET
 backend/**/bin/
 backend/**/obj/
+
+# Python (embedding service and seed scripts)
+__pycache__/
+*.py[cod]
+.venv/
+venv/

@@ -20,6 +20,12 @@ namespace Bookshelf.Application.Books;
 /// Python, bypassing this code. It must apply the same rule, because the embedding input is
 /// "title + author + subjects" and has to be built identically for corpus books and for the
 /// reader's own books — otherwise cosine similarity starts measuring how noisy the text was.
+///
+/// That twin now exists: <c>embedding/seed/subject_filter.py</c>, a faithful port of the rules
+/// below (MaxSubjects, JunkPhrases, the namespace-prefix regex, case-insensitive dedup). The
+/// duplication is deliberate — the alternative was either an uncleaned corpus or a .NET call in
+/// the middle of a Python script. Change one file and the other has to change with it, and the
+/// corpus has to be re-seeded, because every stored vector was built from this output.
 /// </summary>
 public static class SubjectFilter
 {

@@ -1,0 +1,12 @@
+# Runtime dependencies of the embedding service.
+#
+# torch is NOT listed here on purpose. The Dockerfile installs it first from PyTorch's CPU-only
+# index; the default PyPI wheel bundles the CUDA runtime and inflates the image from roughly
+# 600 MB to over 3 GB for GPU support this project can never use. sentence-transformers requires
+# torch, and pip leaves the already-installed CPU build alone because it satisfies that
+# requirement.
+#
+# Versions are pinned so that rebuilding the image months from now produces the same service.
+fastapi==0.115.6
+uvicorn==0.34.0
+sentence-transformers==3.3.1

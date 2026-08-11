@@ -1,0 +1,11 @@
+# Dependencies of the harvest and seed scripts.
+#
+# harvest.py runs on the host (it only needs requests) and seed.py runs in the seed container,
+# which shares the embedding service's image — that is why these are installed there too.
+#
+# psycopg[binary] ships the libpq binary, so the image needs no PostgreSQL client libraries.
+# pgvector registers the vector type with psycopg; without it a Python list cannot be written to
+# a vector(384) column.
+requests==2.32.3
+psycopg[binary]==3.2.3
+pgvector==0.3.6
