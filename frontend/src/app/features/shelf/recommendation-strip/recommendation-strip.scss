@@ -8,7 +8,7 @@
 
 .recommendation-strip__header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: var(--app-space-2);
 }
@@ -18,28 +18,65 @@
   font-size: 1.1rem;
 }
 
-.recommendation-strip__more {
-  font-size: 0.9rem;
+.recommendation-strip__empty {
+  margin: 0;
+  opacity: 0.75;
 }
 
-/* Fixed five columns rather than the auto-fill used by the page grids: the strip is a row of
-   five and should stay a row of five, collapsing only when there is genuinely no width. */
-.recommendation-strip__grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  align-items: stretch;
+/* A scrolling row, not a wrapping grid. Ten recommendations under a shelf that is itself a grid
+   would read as a second page of results; a single row that slides stays clearly secondary.
+   Scroll snapping makes it land on whole cards instead of stopping mid-cover. */
+.recommendation-strip__track {
+  display: flex;
   gap: var(--app-space-2);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  /* Room for the cards' hover shadow, which a clipping overflow would otherwise cut off. */
+  padding: 0.25rem 0 var(--app-space-1);
+  scrollbar-width: thin;
 }
 
-@media (max-width: 720px) {
-  .recommendation-strip__grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  }
+.recommendation-strip__slot {
+  flex: 0 0 160px;
+  /* Not decoration — without it the cards come out at wildly different widths. A flex item
+     defaults to `min-width: auto`, which means it refuses to shrink below its content's
+     min-content size; and a cover image sized with `width: 100%` has no resolvable percentage
+     while its own container is still being measured, so the browser falls back to the image's
+     intrinsic width. Open Library covers are not a uniform size, so every card ended up as wide
+     as whatever JPEG it happened to hold. This lets the declared 160px actually win. */
+  min-width: 0;
+  max-width: 160px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  /* Entry is animated, departure is a transition on the class below: a card being replaced
+     fades out first so the swap is seen rather than noticed. */
+  animation: recommendation-strip-enter 300ms ease;
+  transition: opacity 300ms ease;
+}
+
+/* The card fills its slot, so a row of cards is a row of equal boxes whatever their covers are. */
+.recommendation-strip__slot > app-recommendation-card {
+  flex: 1;
+  min-height: 0;
+}
+
+.recommendation-strip__slot--leaving {
+  opacity: 0;
 }
 
 .recommendation-strip__skeleton {
   height: 300px;
   animation: recommendation-strip-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes recommendation-strip-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes recommendation-strip-pulse {
@@ -52,7 +89,14 @@
   }
 }
 
+/* A reader who has asked the system for less motion gets the swap without the fade — the card
+   still changes, it just does not animate. */
 @media (prefers-reduced-motion: reduce) {
+  .recommendation-strip__slot {
+    animation: none;
+    transition: none;
+  }
+
   .recommendation-strip__skeleton {
     animation: none;
   }

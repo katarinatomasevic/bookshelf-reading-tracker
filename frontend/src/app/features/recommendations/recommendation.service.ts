@@ -20,8 +20,12 @@ import { Recommendations } from '../../core/models/recommendation.model';
 export class RecommendationService {
   private readonly http = inject(HttpClient);
 
-  getRecommendations(limit: number): Observable<Recommendations> {
-    const params = new HttpParams().set('limit', limit);
+  /**
+   * @param offset how far into the ranked list to start; the refresh button advances it, and the
+   *   backend wraps around at the end rather than running out.
+   */
+  getRecommendations(limit: number, offset = 0): Observable<Recommendations> {
+    const params = new HttpParams().set('limit', limit).set('offset', offset);
     return this.http.get<Recommendations>(`${environment.apiUrl}/recommendations`, { params });
   }
 }

@@ -11,21 +11,31 @@ namespace Bookshelf.Api.Controllers;
 public class RecommendationsController(IRecommendationService recommendationService) : ControllerBase
 {
     /// <summary>
-    /// Books to read next. Ten for the recommendations page, five for the strip at the bottom of
-    /// the shelf — the caller says which, since it is the same list either way.
+    /// Books to read next, as a window onto one deterministic ranked list.
+    ///
     /// <para>
     /// No cache header and no server-side cache: the answer must change the moment the shelf
-    /// does. It is also why there is no "refresh" button anywhere in the interface — the result
-    /// is a pure function of the shelf, so pressing one would redraw the identical list and look
-    /// broken.
+    /// does. A cached list would mean rating a book, coming back, and seeing no difference, which
+    /// reads as a bug.
+    /// </para>
+    ///
+    /// <para>
+    /// <paramref name="offset"/> is what makes a refresh button honest. The original decision was
+    /// to have no such button, reasoning that the result is a pure function of the shelf and a
+    /// click would redraw the identical list. That reasoning holds for a button that asks for the
+    /// same ten — so this one asks for the <em>next</em> ten instead, and the objection goes away
+    /// without giving up determinism: the same shelf and the same offset always produce the same
+    /// books.
     /// </para>
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<RecommendationsDto>> Get(
-        [FromQuery] int limit = 10, CancellationToken cancellationToken = default)
+        [FromQuery] int limit = 10,
+        [FromQuery] int offset = 0,
+        CancellationToken cancellationToken = default)
     {
         var recommendations = await recommendationService.GetRecommendationsAsync(
-            User.GetUserId(), limit, cancellationToken);
+            User.GetUserId(), limit, offset, cancellationToken);
 
         return Ok(recommendations);
     }

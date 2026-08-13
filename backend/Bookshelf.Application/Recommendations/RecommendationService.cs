@@ -63,6 +63,14 @@ public class RecommendationService(
 
     private const int MaxLimit = 50;
 
+    /// <summary>
+    /// How long a list is built before any of it is shown. The reader sees a window of it — ten
+    /// on the shelf — and the refresh button moves that window along. Building a pool rather than
+    /// exactly one page is what lets refresh return genuinely different books instead of asking
+    /// the database the same question again and hoping for a different answer.
+    /// </summary>
+    private const int PoolSize = 50;
+
     /// <summary>The rungs, in the order they are tried.</summary>
     private static readonly RecommendationTier[] Tiers =
     [
@@ -72,9 +80,10 @@ public class RecommendationService(
     ];
 
     public async Task<RecommendationsDto> GetRecommendationsAsync(
-        Guid userId, int limit, CancellationToken cancellationToken)
+        Guid userId, int limit, int offset, CancellationToken cancellationToken)
     {
         var safeLimit = Math.Clamp(limit, 1, MaxLimit);
+        var safeOffset = Math.Max(offset, 0);
 
         await TryBackfillEmbeddingsAsync(userId, cancellationToken);
 
@@ -89,7 +98,7 @@ public class RecommendationService(
         foreach (var tier in Tiers)
         {
             var items = await BuildForTierAsync(
-                userId, tier, safeLimit, shelfKeys, taste, cancellationToken);
+                userId, tier, safeLimit, safeOffset, shelfKeys, taste, cancellationToken);
 
             // Falling through on an empty result, not merely on a missing tier. A reader can own
             // ten rated books and still get nothing back — if they already own every neighbour of
@@ -101,7 +110,7 @@ public class RecommendationService(
             }
         }
 
-        return await BuildColdStartAsync(userId, safeLimit, shelfKeys, cancellationToken);
+        return await BuildColdStartAsync(userId, safeLimit, safeOffset, shelfKeys, cancellationToken);
     }
 
     /// <summary>
@@ -112,6 +121,7 @@ public class RecommendationService(
         Guid userId,
         RecommendationTier tier,
         int limit,
+        int offset,
         IReadOnlySet<string> shelfKeys,
         TasteSignal taste,
         CancellationToken cancellationToken)
@@ -163,7 +173,11 @@ public class RecommendationService(
             }
         }
 
-        return Diversify(best.Values, sources.Count, limit, taste);
+        var pool = Diversify(best.Values, sources.Count, taste);
+
+        return Page(pool, offset, limit)
+            .Select(match => match.Book.ToRecommendationDto(match.Source, match.Similarity))
+            .ToList();
     }
 
     /// <summary>
@@ -220,10 +234,10 @@ public class RecommendationService(
     /// still by similarity.
     /// </para>
     /// </summary>
-    private static IReadOnlyList<RecommendationDto> Diversify(
-        IEnumerable<Match> candidates, int sourceCount, int limit, TasteSignal taste)
+    private static IReadOnlyList<Match> Diversify(
+        IEnumerable<Match> candidates, int sourceCount, TasteSignal taste)
     {
-        var maxPerSource = ResolveMaxPerSource(sourceCount, limit);
+        var maxPerSource = ResolveMaxPerSource(sourceCount, PoolSize);
 
         // Similarity plus a small popularity term. Similarity still decides everything that is
         // not a near-tie; popularity settles the ties and sinks obscure books that matched on a
@@ -232,7 +246,7 @@ public class RecommendationService(
 
         var perSource = new Dictionary<Guid, int>();
         var perAuthor = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        var selected = new List<Match>(limit);
+        var selected = new List<Match>(PoolSize);
 
         // One pass, both caps binding, and a short list if that is what the caps leave.
         //
@@ -248,7 +262,7 @@ public class RecommendationService(
         // there is, do not pad it with something worse.
         foreach (var match in ranked)
         {
-            if (selected.Count == limit)
+            if (selected.Count == PoolSize)
             {
                 break;
             }
@@ -261,8 +275,31 @@ public class RecommendationService(
             Take(match, perSource, perAuthor, selected);
         }
 
-        return selected
-            .Select(match => match.Book.ToRecommendationDto(match.Source, match.Similarity))
+        return selected;
+    }
+
+    /// <summary>
+    /// The window of the pool this request asks for, wrapping around at the end.
+    ///
+    /// <para>
+    /// Wrapping rather than running out is what makes the refresh button behave sensibly for a
+    /// reader whose shelf yields only a dozen candidates: pressing it keeps showing them
+    /// different books and eventually comes back round, instead of emptying the strip. A pool no
+    /// larger than one page is returned whole — there is nothing to page through, and repeating
+    /// a book inside a single view would be worse than not moving at all.
+    /// </para>
+    /// </summary>
+    private static IReadOnlyList<T> Page<T>(IReadOnlyList<T> pool, int offset, int limit)
+    {
+        if (pool.Count <= limit)
+        {
+            return pool;
+        }
+
+        var start = offset % pool.Count;
+
+        return Enumerable.Range(0, limit)
+            .Select(index => pool[(start + index) % pool.Count])
             .ToList();
     }
 
@@ -362,7 +399,11 @@ public class RecommendationService(
     /// </para>
     /// </summary>
     private async Task<RecommendationsDto> BuildColdStartAsync(
-        Guid userId, int limit, IReadOnlySet<string> shelfKeys, CancellationToken cancellationToken)
+        Guid userId,
+        int limit,
+        int offset,
+        IReadOnlySet<string> shelfKeys,
+        CancellationToken cancellationToken)
     {
         var popular = await repository.GetPopularByTopicAsync(userId, cancellationToken);
 
@@ -379,11 +420,11 @@ public class RecommendationService(
         // "thriller" and "horror" — and an opening screen that repeats an author has wasted one
         // of its ten chances to interest somebody.
         var perAuthor = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        var items = new List<RecommendationDto>(limit);
+        var pool = new List<Book>(PoolSize);
 
         foreach (var book in ordered)
         {
-            if (items.Count == limit)
+            if (pool.Count == PoolSize)
             {
                 break;
             }
@@ -399,8 +440,15 @@ public class RecommendationService(
                 perAuthor[author] = perAuthor.GetValueOrDefault(author) + 1;
             }
 
-            items.Add(book.ToPopularRecommendationDto());
+            pool.Add(book);
         }
+
+        // Paged like the personalised rungs, so the refresh button works the same on a brand new
+        // shelf — which is the account most likely to press it, having been shown ten books it
+        // knows nothing about yet.
+        var items = Page(pool, offset, limit)
+            .Select(book => book.ToPopularRecommendationDto())
+            .ToList();
 
         return new RecommendationsDto(items, true);
     }
