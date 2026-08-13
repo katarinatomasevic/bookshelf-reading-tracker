@@ -13,6 +13,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'recommendations',
+    loadComponent: () =>
+      import('./features/recommendations/recommendations').then((m) => m.Recommendations),
+    canActivate: [authGuard],
+  },
+  {
     path: 'dashboard',
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
     canActivate: [authGuard],

@@ -1,0 +1,59 @@
+.recommendation-strip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  padding-top: var(--app-space-3);
+  border-top: 1px solid var(--p-content-border-color, #ddd);
+}
+
+.recommendation-strip__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--app-space-2);
+}
+
+.recommendation-strip__title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.recommendation-strip__more {
+  font-size: 0.9rem;
+}
+
+/* Fixed five columns rather than the auto-fill used by the page grids: the strip is a row of
+   five and should stay a row of five, collapsing only when there is genuinely no width. */
+.recommendation-strip__grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+  gap: var(--app-space-2);
+}
+
+@media (max-width: 720px) {
+  .recommendation-strip__grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
+
+.recommendation-strip__skeleton {
+  height: 300px;
+  animation: recommendation-strip-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes recommendation-strip-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recommendation-strip__skeleton {
+    animation: none;
+  }
+}

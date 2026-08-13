@@ -75,6 +75,11 @@
     </p-tabs>
   }
 
+  <!-- At the foot of the shelf on purpose: this is where a reader ends up after finishing a
+       book and wonders what to read next. Shown for an empty shelf too, where it is the popular
+       list and doubles as a way in. -->
+  <app-recommendation-strip />
+
   <app-manual-book-dialog [(visible)]="showManualDialog" (created)="onManualCreated($event)" />
 
   <app-book-detail-modal

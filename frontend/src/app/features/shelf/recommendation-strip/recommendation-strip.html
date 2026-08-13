@@ -1,0 +1,37 @@
+<!-- The whole strip disappears on failure rather than showing an error: it is a suggestion under
+     somebody else's page, and the shelf itself is unaffected. -->
+@if (!failed()) {
+  <section class="recommendation-strip">
+    <header class="recommendation-strip__header">
+      <h2 class="recommendation-strip__title">
+        @if (isColdStart()) {
+          Popular on Bookshelf
+        } @else {
+          What to read next
+        }
+      </h2>
+
+      <a class="recommendation-strip__more" routerLink="/recommendations">See all</a>
+    </header>
+
+    @if (loading()) {
+      <div class="recommendation-strip__grid">
+        @for (slot of skeletons; track slot) {
+          <div class="recommendation-strip__skeleton app-card" aria-hidden="true"></div>
+        }
+      </div>
+    } @else if (items().length > 0) {
+      <div class="recommendation-strip__grid">
+        @for (recommendation of items(); track recommendation.bookId) {
+          <app-recommendation-card
+            [recommendation]="recommendation"
+            [isOnShelf]="addedBookIds().has(recommendation.bookId)"
+            [addPending]="pendingAdd() === recommendation.bookId"
+            (select)="onSelect(recommendation)"
+            (addToShelf)="onAddToShelf(recommendation)"
+          />
+        }
+      </div>
+    }
+  </section>
+}
