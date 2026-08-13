@@ -4,6 +4,8 @@ using Bookshelf.Application.Common.Exceptions;
 using Bookshelf.Application.ReadingLogs;
 using Bookshelf.Domain.Entities;
 using Bookshelf.Domain.Enums;
+using Microsoft.Extensions.Logging;
+using Pgvector;
 
 namespace Bookshelf.Application.Shelf;
 
@@ -12,7 +14,9 @@ public class ShelfService(
     IShelfRepository shelfRepository,
     IReadingLogRepository readingLogRepository,
     IBookService bookService,
-    IOpenLibraryClient openLibraryClient) : IShelfService
+    IOpenLibraryClient openLibraryClient,
+    IEmbeddingClient embeddingClient,
+    ILogger<ShelfService> logger) : IShelfService
 {
     /// <summary>
     /// Roughly a page of text: enough for why a book is on the shelf and what the reader thought
@@ -59,6 +63,7 @@ public class ShelfService(
             CreatedAt = DateTimeOffset.UtcNow,
         };
 
+        await TryEmbedAsync(book, cancellationToken);
         await bookRepository.AddAsync(book, cancellationToken);
 
         return await AddShelfEntryAsync(userId, book, cancellationToken);
@@ -411,9 +416,54 @@ public class ShelfService(
             CreatedAt = DateTimeOffset.UtcNow,
         };
 
+        await TryEmbedAsync(book, cancellationToken);
         await bookRepository.AddAsync(book, cancellationToken);
 
         return book;
+    }
+
+    /// <summary>
+    /// Gives a brand new book its vector, if the embedding service can be reached.
+    ///
+    /// <para>
+    /// Called before the insert rather than after, so a successful embedding is written by the
+    /// same INSERT that creates the row — one round trip instead of an insert followed by an
+    /// update, and no window in which the book exists without a vector it was about to get.
+    /// </para>
+    ///
+    /// <para>
+    /// Failure is swallowed on purpose, and this is the decision worth defending: the embedding
+    /// service is optional infrastructure for a feature the reader did not ask for at this
+    /// moment. They asked to put a book on their shelf. A recommender being unavailable must
+    /// never be the reason that fails — so the book is saved with <c>Embedding = NULL</c>, which
+    /// the recommender reads as "not a candidate yet", and the lazy backfill picks it up the next
+    /// time recommendations are requested. Nothing is lost but a few milliseconds.
+    /// </para>
+    ///
+    /// <para>
+    /// The one exception that is <em>not</em> swallowed is the caller's own cancellation: the
+    /// reader closed the tab, there is nobody to save a book for, and turning that into "carry on
+    /// without a vector" would fabricate work nobody wants.
+    /// </para>
+    /// </summary>
+    private async Task TryEmbedAsync(Book book, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var text = EmbeddingText.Build(book);
+            var embedding = await embeddingClient.EmbedAsync(text, cancellationToken);
+
+            book.Embedding = new Vector(embedding);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Warning, not error: nothing here is a defect to go and fix, and logging it at
+            // error level would train us to ignore errors.
+            logger.LogWarning(
+                exception,
+                "Could not embed book {Title}; it is saved without a vector and will be picked up by the next backfill.",
+                book.Title);
+        }
     }
 
     private async Task<ShelfItemDto> AddShelfEntryAsync(Guid userId, Book book, CancellationToken cancellationToken)

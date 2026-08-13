@@ -1,7 +1,17 @@
 <article class="app-card book-card" (click)="onSelect()" role="button" tabindex="0" (keydown.enter)="onSelect()">
   <div class="book-card__cover-wrapper">
     @if (coverUrl(); as url) {
-      <img class="book-card__cover" [src]="url" [alt]="book().title" />
+      <!-- Lazy on purpose. A shelf page now paints its own grid of covers and ten more in the
+           recommendation strip, all from covers.openlibrary.org, and browsers open only a
+           handful of connections per host — so the ones below the fold or scrolled off the side
+           of the strip used to hold up the ones actually on screen. -->
+      <img
+        class="book-card__cover"
+        [src]="url"
+        [alt]="book().title"
+        loading="lazy"
+        decoding="async"
+      />
     } @else {
       <div class="book-card__cover book-card__cover--placeholder">
         <i class="pi pi-book"></i>

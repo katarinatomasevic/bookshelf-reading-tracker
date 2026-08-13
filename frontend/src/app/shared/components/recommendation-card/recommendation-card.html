@@ -1,0 +1,22 @@
+<div class="recommendation-card">
+  <app-book-card
+    [book]="recommendation()"
+    [showAddButton]="true"
+    [isOnShelf]="isOnShelf()"
+    [addPending]="addPending()"
+    (select)="select.emit()"
+    (addToShelf)="addToShelf.emit()"
+  />
+
+  <!-- Below the card, not on it: it explains the card rather than describing the book. -->
+  <p
+    class="recommendation-card__reason"
+    [class.recommendation-card__reason--popular]="isPopular()"
+    [title]="reason()"
+  >
+    @if (isPopular()) {
+      <i class="pi pi-star-fill"></i>
+    }
+    {{ reason() }}
+  </p>
+</div>

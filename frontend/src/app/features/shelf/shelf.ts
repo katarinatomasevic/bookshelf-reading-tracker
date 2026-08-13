@@ -11,6 +11,7 @@ import { ReadingStatus, ShelfItem, ShelfSort } from '../../core/models/shelf.mod
 import { BookCard } from '../../shared/components/book-card/book-card';
 import { BookDetailModal } from './book-detail-modal/book-detail-modal';
 import { ManualBookDialog } from './manual-book-dialog/manual-book-dialog';
+import { RecommendationStrip } from './recommendation-strip/recommendation-strip';
 import { ShelfService } from './shelf.service';
 
 @Component({
@@ -27,6 +28,7 @@ import { ShelfService } from './shelf.service';
     BookCard,
     BookDetailModal,
     ManualBookDialog,
+    RecommendationStrip,
   ],
   templateUrl: './shelf.html',
   styleUrl: './shelf.scss',

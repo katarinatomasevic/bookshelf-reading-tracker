@@ -1,0 +1,59 @@
+<!-- The whole strip disappears on failure rather than showing an error: it is a suggestion under
+     somebody else's page, and the shelf itself is unaffected. -->
+@if (!failed()) {
+  <section class="recommendation-strip">
+    <header class="recommendation-strip__header">
+      <h2 class="recommendation-strip__title">
+        @if (isColdStart()) {
+          Popular on Bookshelf
+        } @else {
+          What to read next
+        }
+      </h2>
+
+      <!-- Asks for the next ten, not the same ten again. -->
+      <p-button
+        label="Show different books"
+        icon="pi pi-refresh"
+        severity="secondary"
+        [text]="true"
+        size="small"
+        [disabled]="loading()"
+        (onClick)="onRefresh()"
+      />
+    </header>
+
+    @if (loading()) {
+      <div class="recommendation-strip__track">
+        @for (slot of skeletons; track slot) {
+          <div class="recommendation-strip__slot">
+            <div class="recommendation-strip__skeleton app-card" aria-hidden="true"></div>
+          </div>
+        }
+      </div>
+    } @else if (items().length > 0) {
+      <!-- A horizontal track rather than a wrapping grid: the strip stays one row under the
+           shelf instead of becoming a second page of results. -->
+      <div class="recommendation-strip__track" tabindex="0" aria-label="Recommended books">
+        @for (recommendation of items(); track recommendation.bookId) {
+          <div
+            class="recommendation-strip__slot"
+            [class.recommendation-strip__slot--leaving]="leavingBookIds().has(recommendation.bookId)"
+          >
+            <app-recommendation-card
+              [recommendation]="recommendation"
+              [isOnShelf]="addedBookIds().has(recommendation.bookId)"
+              [addPending]="pendingAdd() === recommendation.bookId"
+              (select)="onSelect(recommendation)"
+              (addToShelf)="onAddToShelf(recommendation)"
+            />
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="recommendation-strip__empty">
+        Nothing to recommend just yet. Add a few books to your shelf and rate them.
+      </p>
+    }
+  </section>
+}

@@ -1,0 +1,55 @@
+/* The component's own host element. A custom element defaults to `display: inline`, and while a
+   grid item is blockified automatically, its height still has to be told to fill the row —
+   without this the wrapper below has nothing definite to size against and every card ends up as
+   tall as its own text. */
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.recommendation-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.35rem;
+}
+
+/* The book card's host is a flex child here, so it sizes to its content by default. `.book-card`
+   inside it asks for `height: 100%`, which resolves against `auto` and therefore does nothing.
+   Making the host grow is what gives that percentage something real to resolve against, and is
+   why the covers and titles line up across a row. */
+.recommendation-card > app-book-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Two lines rather than one. The attribution names the book it came from, so cutting it off
+   after "Because you liked The Secret…" throws away the only part that carries meaning; the
+   earlier single-line version was working around the height bug fixed above rather than solving
+   it. Space for both lines is reserved whether or not the text needs them, so a one-line reason
+   and a two-line reason still leave the cards aligned. */
+.recommendation-card__reason {
+  margin: 0;
+  padding: 0 0.15rem;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  opacity: 0.75;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: calc(1.3em * 2);
+}
+
+/* "Popular" is always one short line, so it keeps the flex layout that puts the star beside it
+   and simply sits inside the same reserved height. */
+.recommendation-card__reason--popular {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--p-rating-icon-active-color, #f59e0b);
+  opacity: 1;
+}

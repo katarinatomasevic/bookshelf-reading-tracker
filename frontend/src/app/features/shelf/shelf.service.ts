@@ -19,6 +19,22 @@ export class ShelfService {
   readonly items = signal<ShelfItem[]>([]);
   readonly loaded = signal(false);
 
+  /**
+   * Increments whenever a change to the shelf could change what should be recommended: a status
+   * change, a rating change, or a removal. Anything watching it — the recommendation strip —
+   * refetches; nothing else in the application reads it.
+   *
+   * <p>Deliberately not "the shelf changed at all". Editing a note, correcting a date or setting
+   * a starting page all change the shelf and none of them says anything about taste, so none of
+   * them causes a request. The distinction is made here, once, rather than at each call site,
+   * because this service is where the request body is already in hand.</p>
+   *
+   * <p>A counter rather than a boolean or the shelf signal itself: two rating changes in a row
+   * have to be two separate events, and reacting to `items` would refetch on every progress
+   * entry and every note edit.</p>
+   */
+  readonly tasteChanged = signal(0);
+
   constructor() {
     this.sessionReset.register(() => this.clear());
   }
@@ -27,6 +43,10 @@ export class ShelfService {
   clear(): void {
     this.items.set([]);
     this.loaded.set(false);
+
+    // Left alone on purpose. It is a change counter, not shelf content — resetting it to zero
+    // would read as "something changed" to anything watching, and there is nothing of the
+    // previous reader in a number.
   }
 
   getShelf(): Observable<ShelfItem[]> {
@@ -52,16 +72,29 @@ export class ShelfService {
 
   /** The response carries the saved entry, so the shelf updates without re-fetching it. */
   update(userBookId: string, request: UpdateShelfItemRequest): Observable<ShelfItem> {
-    return this.http
-      .patch<ShelfItem>(`${environment.apiUrl}/shelf/${userBookId}`, request)
-      .pipe(tap((item) => this.upsert(item)));
+    // Read before the request is sent, but only acted on after it succeeds: a rejected save
+    // must not move the recommendations.
+    const touchesTaste = request.status !== undefined || request.rating !== undefined;
+
+    return this.http.patch<ShelfItem>(`${environment.apiUrl}/shelf/${userBookId}`, request).pipe(
+      tap((item) => {
+        this.upsert(item);
+        if (touchesTaste) {
+          this.tasteChanged.update((count) => count + 1);
+        }
+      }),
+    );
   }
 
   remove(userBookId: string): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/shelf/${userBookId}`).pipe(
-      tap(() =>
-        this.items.update((current) => current.filter((item) => item.id !== userBookId)),
-      ),
+      tap(() => {
+        this.items.update((current) => current.filter((item) => item.id !== userBookId));
+
+        // A removal always counts: the book leaves the shelf, so it stops being a source of
+        // recommendations and becomes eligible to be recommended.
+        this.tasteChanged.update((count) => count + 1);
+      }),
     );
   }
 
