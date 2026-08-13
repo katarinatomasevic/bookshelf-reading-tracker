@@ -151,6 +151,11 @@ corpus.json
 # .NET
 backend/**/bin/
 backend/**/obj/
+tests/**/bin/
+tests/**/obj/
+
+# Screenshots taken when an E2E test fails (see Faza 10)
+tests/**/screenshots/
 
 # Python (embedding service and seed scripts)
 __pycache__/

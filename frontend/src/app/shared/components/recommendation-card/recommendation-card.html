@@ -1,4 +1,4 @@
-<div class="recommendation-card">
+<div class="recommendation-card" data-testid="recommendation-card">
   <app-book-card
     [book]="recommendation()"
     [showAddButton]="true"
@@ -11,6 +11,7 @@
   <!-- Below the card, not on it: it explains the card rather than describing the book. -->
   <p
     class="recommendation-card__reason"
+    data-testid="recommendation-card-reason"
     [class.recommendation-card__reason--popular]="isPopular()"
     [title]="reason()"
   >

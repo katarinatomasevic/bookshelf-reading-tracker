@@ -8,7 +8,7 @@
       />
     }
 
-    <span class="reading-progress__label">
+    <span class="reading-progress__label" data-testid="reading-progress-label">
       @if (pageCount(); as total) {
         Page {{ page() }} of {{ total }} · {{ percent() }}%
       } @else {
