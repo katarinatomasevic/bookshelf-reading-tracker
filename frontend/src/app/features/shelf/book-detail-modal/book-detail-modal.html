@@ -9,10 +9,11 @@
 >
   <ng-template #header>
     <div class="shelf-modal__header">
-      <span class="shelf-modal__header-title">{{ item()?.title }}</span>
+      <span class="shelf-modal__header-title" data-testid="modal-title">{{ item()?.title }}</span>
       <p-button
         type="button"
         icon="pi pi-times"
+        data-testid="modal-close"
         severity="secondary"
         [text]="true"
         [rounded]="true"
@@ -23,7 +24,7 @@
   </ng-template>
 
   @if (item(); as item) {
-    <form class="shelf-modal" [formGroup]="form" (ngSubmit)="onSave()">
+    <form class="shelf-modal" data-testid="shelf-modal" [formGroup]="form" (ngSubmit)="onSave()">
       <div class="shelf-modal__book">
         @if (coverUrl(item); as url) {
           <img class="shelf-modal__cover" [src]="url" [alt]="item.title" />
@@ -69,6 +70,7 @@
             <label for="modal-status">Status</label>
             <p-select
               inputId="modal-status"
+              data-testid="modal-status"
               formControlName="status"
               [options]="statusOptions"
               optionLabel="label"
@@ -79,10 +81,15 @@
 
           <div class="shelf-modal__field">
             <label id="modal-rating-label">Your rating</label>
-            <div class="shelf-modal__rating">
+            <div class="shelf-modal__rating" data-testid="modal-rating">
               <p-rating formControlName="rating" [stars]="5" aria-labelledby="modal-rating-label" />
               @if (form.controls.rating.value) {
-                <button type="button" class="shelf-modal__clear" (click)="clearRating()">
+                <button
+                  type="button"
+                  class="shelf-modal__clear"
+                  data-testid="modal-clear-rating"
+                  (click)="clearRating()"
+                >
                   Clear rating
                 </button>
               }
@@ -103,6 +110,7 @@
               pInputText
               id="modal-start-page"
               type="number"
+              data-testid="modal-start-page"
               formControlName="startPage"
               min="0"
               [attr.max]="maxStartPage()"
@@ -154,12 +162,13 @@
         </div>
 
         @if (errorMessage(); as message) {
-          <p-message severity="error" [text]="message" />
+          <p-message severity="error" [text]="message" data-testid="modal-error" />
         }
 
         <div class="shelf-modal__section-actions">
           <p-button
             type="submit"
+            data-testid="modal-save"
             [label]="justSaved() ? 'Saved' : 'Save changes'"
             [icon]="justSaved() ? 'pi pi-check-circle' : 'pi pi-check'"
             [disabled]="!form.dirty || form.invalid"
@@ -174,7 +183,7 @@
         and it cannot be taken back by closing the dialog.
       -->
       @if (showProgress()) {
-        <section class="shelf-modal__section">
+        <section class="shelf-modal__section" data-testid="modal-progress-section">
           <h3 class="shelf-modal__section-title">Reading progress</h3>
 
           <app-reading-progress [currentPage]="item.currentPage" [pageCount]="item.pageCount" />
@@ -209,6 +218,7 @@
           type="button"
           label="Remove from shelf"
           icon="pi pi-trash"
+          data-testid="modal-remove"
           severity="danger"
           [text]="true"
           [loading]="removing()"

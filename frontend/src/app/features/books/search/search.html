@@ -6,10 +6,11 @@
       pInputText
       type="text"
       name="query"
+      data-testid="search-query"
       placeholder="Search by title, author..."
       [(ngModel)]="queryInput"
     />
-    <p-button type="submit" label="Search" icon="pi pi-search" />
+    <p-button type="submit" label="Search" icon="pi pi-search" data-testid="search-submit" />
   </form>
 
   @if (error(); as message) {
@@ -27,9 +28,9 @@
   } @else if (!bookService.hasSearched()) {
     <p class="search-page__empty">Search for a book to get started.</p>
   } @else if (bookService.results().length === 0) {
-    <p class="search-page__empty">No books found for this search.</p>
+    <p class="search-page__empty" data-testid="search-no-results">No books found for this search.</p>
   } @else {
-    <div class="search-page__grid">
+    <div class="search-page__grid" data-testid="search-results">
       @for (book of bookService.results(); track book.openLibraryId) {
         <app-book-card
           [book]="book"
@@ -46,6 +47,7 @@
       <div class="search-page__load-more">
         <p-button
           label="Load more"
+          data-testid="search-load-more"
           severity="secondary"
           [outlined]="true"
           [loading]="loadingMore()"

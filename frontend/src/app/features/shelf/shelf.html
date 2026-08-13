@@ -1,9 +1,10 @@
-<main class="shelf-page">
+<main class="shelf-page" data-testid="shelf-page">
   <header class="shelf-page__header">
     <h1>My shelf</h1>
     <p-button
       label="Add a book manually"
       icon="pi pi-plus"
+      data-testid="shelf-add-manually"
       severity="secondary"
       [outlined]="true"
       size="small"
@@ -20,7 +21,7 @@
       <p-progress-spinner />
     </div>
   } @else if (isEmpty()) {
-    <div class="shelf-page__empty">
+    <div class="shelf-page__empty" data-testid="shelf-empty">
       <p>Your shelf is empty.</p>
       <a routerLink="/">Search for a book to add your first one</a>
       <span class="shelf-page__empty-or">
@@ -33,6 +34,7 @@
         pInputText
         type="search"
         class="shelf-page__search"
+        data-testid="shelf-search"
         placeholder="Search by title, author or genre…"
         aria-label="Search your shelf"
         [ngModel]="searchTerm()"
@@ -51,25 +53,32 @@
 
     <p-tabs [value]="activeTab()" (valueChange)="activeTab.set($any($event))">
       <p-tablist>
-        <p-tab [value]="0">Want to read ({{ wantToRead().length }})</p-tab>
-        <p-tab [value]="1">Reading ({{ reading().length }})</p-tab>
-        <p-tab [value]="2">Read ({{ read().length }})</p-tab>
+        <p-tab [value]="0" data-testid="shelf-tab-want">Want to read ({{ wantToRead().length }})</p-tab>
+        <p-tab [value]="1" data-testid="shelf-tab-reading">Reading ({{ reading().length }})</p-tab>
+        <p-tab [value]="2" data-testid="shelf-tab-read">Read ({{ read().length }})</p-tab>
       </p-tablist>
 
       <p-tabpanels>
+        <!-- Each panel names its own grid, so a test (and a reader of the DOM) can tell which
+             tab a card belongs to without depending on which panel happens to be rendered. -->
         <p-tabpanel [value]="0">
-          <ng-container *ngTemplateOutlet="panel; context: { $implicit: wantToRead() }" />
+          <ng-container
+            *ngTemplateOutlet="panel; context: { $implicit: wantToRead(), tab: 'want' }"
+          />
         </p-tabpanel>
 
         <p-tabpanel [value]="1">
           <!-- Only here: a book has a place in it only while it is being read. -->
           <ng-container
-            *ngTemplateOutlet="panel; context: { $implicit: reading(), showProgress: true }"
+            *ngTemplateOutlet="
+              panel;
+              context: { $implicit: reading(), showProgress: true, tab: 'reading' }
+            "
           />
         </p-tabpanel>
 
         <p-tabpanel [value]="2">
-          <ng-container *ngTemplateOutlet="panel; context: { $implicit: read() }" />
+          <ng-container *ngTemplateOutlet="panel; context: { $implicit: read(), tab: 'read' }" />
         </p-tabpanel>
       </p-tabpanels>
     </p-tabs>
@@ -90,10 +99,10 @@
 </main>
 
 <!-- One body for all three tabs: they differ only in which slice of the shelf they render. -->
-<ng-template #panel let-items let-showProgress="showProgress">
+<ng-template #panel let-items let-showProgress="showProgress" let-tab="tab">
   @if (items.length === 0) {
     @if (isSearching()) {
-      <p class="shelf-page__empty-tab">
+      <p class="shelf-page__empty-tab" [attr.data-testid]="'shelf-no-matches-' + tab">
         No matches in this tab.
         @if (hitsInOtherTabs(); as others) {
           @if (others.length > 0) {
@@ -107,10 +116,12 @@
         }
       </p>
     } @else {
-      <p class="shelf-page__empty-tab">Nothing here yet.</p>
+      <p class="shelf-page__empty-tab" [attr.data-testid]="'shelf-empty-' + tab">
+        Nothing here yet.
+      </p>
     }
   } @else {
-    <div class="shelf-page__grid">
+    <div class="shelf-page__grid" [attr.data-testid]="'shelf-grid-' + tab">
       @for (item of items; track item.id) {
         <app-book-card
           [book]="item"

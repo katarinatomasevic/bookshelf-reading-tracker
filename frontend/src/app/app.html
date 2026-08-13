@@ -1,28 +1,31 @@
 <header class="app-header">
   <a routerLink="/" class="app-header__brand">Bookshelf</a>
 
-  <nav class="app-header__nav">
-    <a routerLink="/">Home</a>
+  <nav class="app-header__nav" data-testid="nav">
+    <a routerLink="/" data-testid="nav-home">Home</a>
 
     @if (authService.isLoggedIn()) {
-      <a routerLink="/shelf">My shelf</a>
-      <a routerLink="/dashboard">Dashboard</a>
+      <a routerLink="/shelf" data-testid="nav-shelf">My shelf</a>
+      <a routerLink="/dashboard" data-testid="nav-dashboard">Dashboard</a>
 
       <button
         type="button"
         class="app-header__profile"
         aria-haspopup="true"
         aria-label="Profile menu"
+        data-testid="nav-profile-menu"
         (click)="profileMenu.toggle($event)"
       >
         <i class="pi pi-user"></i>
-        <span class="app-header__user">{{ authService.currentUser()?.displayName }}</span>
+        <span class="app-header__user" data-testid="nav-display-name">{{
+          authService.currentUser()?.displayName
+        }}</span>
         <i class="pi pi-angle-down app-header__profile-caret"></i>
       </button>
       <p-menu #profileMenu [model]="profileMenuItems" [popup]="true" />
     } @else {
-      <a routerLink="/login">Log in</a>
-      <a routerLink="/register">Register</a>
+      <a routerLink="/login" data-testid="nav-login">Log in</a>
+      <a routerLink="/register" data-testid="nav-register">Register</a>
     }
   </nav>
 </header>

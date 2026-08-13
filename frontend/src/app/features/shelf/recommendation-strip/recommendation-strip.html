@@ -1,9 +1,15 @@
 <!-- The whole strip disappears on failure rather than showing an error: it is a suggestion under
      somebody else's page, and the shelf itself is unaffected. -->
 @if (!failed()) {
-  <section class="recommendation-strip">
+  <section class="recommendation-strip" data-testid="recommendation-strip">
     <header class="recommendation-strip__header">
-      <h2 class="recommendation-strip__title">
+      <!-- The heading is also the cold-start marker: which of the two it reads tells a test
+           (and a reader) which rung of F5 produced this list. -->
+      <h2
+        class="recommendation-strip__title"
+        data-testid="recommendation-strip-title"
+        [attr.data-cold-start]="isColdStart()"
+      >
         @if (isColdStart()) {
           Popular on Bookshelf
         } @else {
@@ -15,6 +21,7 @@
       <p-button
         label="Show different books"
         icon="pi pi-refresh"
+        data-testid="recommendation-strip-refresh"
         severity="secondary"
         [text]="true"
         size="small"
@@ -34,7 +41,12 @@
     } @else if (items().length > 0) {
       <!-- A horizontal track rather than a wrapping grid: the strip stays one row under the
            shelf instead of becoming a second page of results. -->
-      <div class="recommendation-strip__track" tabindex="0" aria-label="Recommended books">
+      <div
+        class="recommendation-strip__track"
+        data-testid="recommendation-strip-track"
+        tabindex="0"
+        aria-label="Recommended books"
+      >
         @for (recommendation of items(); track recommendation.bookId) {
           <div
             class="recommendation-strip__slot"
@@ -51,7 +63,7 @@
         }
       </div>
     } @else {
-      <p class="recommendation-strip__empty">
+      <p class="recommendation-strip__empty" data-testid="recommendation-strip-empty">
         Nothing to recommend just yet. Add a few books to your shelf and rate them.
       </p>
     }

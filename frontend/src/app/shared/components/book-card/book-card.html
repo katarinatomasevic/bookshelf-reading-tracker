@@ -1,4 +1,12 @@
-<article class="app-card book-card" (click)="onSelect()" role="button" tabindex="0" (keydown.enter)="onSelect()">
+<article
+  class="app-card book-card"
+  data-testid="book-card"
+  [attr.data-book-title]="book().title"
+  (click)="onSelect()"
+  role="button"
+  tabindex="0"
+  (keydown.enter)="onSelect()"
+>
   <div class="book-card__cover-wrapper">
     @if (coverUrl(); as url) {
       <!-- Lazy on purpose. A shelf page now paints its own grid of covers and ten more in the
@@ -19,14 +27,16 @@
     }
 
     @if (isOnShelf()) {
-      <span class="book-card__badge"><i class="pi pi-check"></i> On shelf</span>
+      <span class="book-card__badge" data-testid="book-card-on-shelf-badge"
+        ><i class="pi pi-check"></i> On shelf</span
+      >
     }
   </div>
 
   <div class="book-card__body">
-    <div class="book-card__title">{{ book().title }}</div>
+    <div class="book-card__title" data-testid="book-card-title">{{ book().title }}</div>
     @if (book().author; as author) {
-      <div class="book-card__author">{{ author }}</div>
+      <div class="book-card__author" data-testid="book-card-author">{{ author }}</div>
     }
 
     <!-- Kept together at the foot of the card so cards in a grid line up whether or not a book
@@ -41,7 +51,11 @@
       }
 
       @if (showProgress()) {
-        <app-reading-progress [currentPage]="currentPage()" [pageCount]="pageCount()" />
+        <app-reading-progress
+          data-testid="book-card-progress"
+          [currentPage]="currentPage()"
+          [pageCount]="pageCount()"
+        />
       }
     </div>
   </div>

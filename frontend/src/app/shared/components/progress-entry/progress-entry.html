@@ -3,8 +3,9 @@
   nested form is invalid HTML whose submit behaviour is left to the browser. Enter is wired to
   the number field instead, so the shortcut still works without the nesting.
 -->
-<div class="progress-entry" [formGroup]="form">
+<div class="progress-entry" data-testid="progress-entry" [formGroup]="form">
   <p-selectbutton
+    data-testid="progress-mode"
     formControlName="mode"
     [options]="modeOptions()"
     optionLabel="label"
@@ -29,6 +30,7 @@
         pInputText
         id="progress-amount"
         type="number"
+        data-testid="progress-amount"
         inputmode="numeric"
         min="1"
         formControlName="amount"
@@ -44,6 +46,7 @@
         pInputText
         id="progress-date"
         type="date"
+        data-testid="progress-date"
         formControlName="date"
         [attr.min]="minDate"
         [attr.max]="maxDate"
@@ -57,6 +60,7 @@
       type="button"
       label="Log progress"
       icon="pi pi-plus"
+      data-testid="progress-submit"
       [disabled]="form.invalid"
       [loading]="saving()"
       (onClick)="onSubmit()"
@@ -69,12 +73,14 @@
   }
 
   @if (errorMessage(); as message) {
-    <p-message severity="error" [text]="message" />
+    <p-message severity="error" [text]="message" data-testid="progress-error" />
   }
 
   <!-- Deliberately a quiet line rather than a success banner: it confirms an action the reader
        already expected to work, and its real job is to name the day's total. -->
   @if (savedMessage(); as message) {
-    <small class="progress-entry__saved" role="status">{{ message }}</small>
+    <small class="progress-entry__saved" data-testid="progress-saved" role="status">{{
+      message
+    }}</small>
   }
 </div>

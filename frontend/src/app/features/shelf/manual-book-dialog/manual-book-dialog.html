@@ -8,14 +8,25 @@
   [breakpoints]="{ '640px': '95vw' }"
   (onHide)="onHide()"
 >
-  <form class="manual-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <form
+    class="manual-form"
+    data-testid="manual-book-form"
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+  >
     <p class="manual-form__intro">
       For books Open Library doesn't have. It goes straight to your shelf.
     </p>
 
     <div class="manual-form__field">
       <label for="manual-title">Title</label>
-      <input pInputText id="manual-title" type="text" formControlName="title" />
+      <input
+        pInputText
+        id="manual-title"
+        type="text"
+        data-testid="manual-book-title"
+        formControlName="title"
+      />
       @if (form.controls.title.invalid && form.controls.title.touched) {
         <small class="manual-form__error">Title is required.</small>
       }
@@ -24,12 +35,25 @@
     <div class="manual-form__row">
       <div class="manual-form__field">
         <label for="manual-author">Author</label>
-        <input pInputText id="manual-author" type="text" formControlName="author" />
+        <input
+          pInputText
+          id="manual-author"
+          type="text"
+          data-testid="manual-book-author"
+          formControlName="author"
+        />
       </div>
 
       <div class="manual-form__field manual-form__field--narrow">
         <label for="manual-pages">Pages</label>
-        <input pInputText id="manual-pages" type="number" formControlName="pageCount" min="1" />
+        <input
+          pInputText
+          id="manual-pages"
+          type="number"
+          data-testid="manual-book-pages"
+          formControlName="pageCount"
+          min="1"
+        />
         @if (form.controls.pageCount.invalid && form.controls.pageCount.touched) {
           <small class="manual-form__error">Must be a positive number.</small>
         }
@@ -42,6 +66,7 @@
         pInputText
         id="manual-subjects"
         type="text"
+        data-testid="manual-book-genres"
         formControlName="subjects"
         placeholder="fantasy, adventure"
       />
@@ -60,18 +85,25 @@
     </div>
 
     @if (errorMessage()) {
-      <p-message severity="error" [text]="errorMessage()!" />
+      <p-message severity="error" [text]="errorMessage()!" data-testid="manual-book-error" />
     }
 
     <div class="manual-form__actions">
       <p-button
         type="button"
         label="Cancel"
+        data-testid="manual-book-cancel"
         severity="secondary"
         [text]="true"
         (onClick)="onCancel()"
       />
-      <p-button type="submit" label="Add to shelf" icon="pi pi-plus" [loading]="submitting()" />
+      <p-button
+        type="submit"
+        label="Add to shelf"
+        icon="pi pi-plus"
+        data-testid="manual-book-submit"
+        [loading]="submitting()"
+      />
     </div>
   </form>
 </p-dialog>
