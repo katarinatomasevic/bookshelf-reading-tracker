@@ -38,21 +38,49 @@ public class RecommendationRepository(AppDbContext context) : IRecommendationRep
             .ThenByDescending(ub => ub.FinishedAt)
             .ThenByDescending(ub => ub.AddedAt)
             .Take(limit)
-            .Select(ub => new RecommendationSource(ub.BookId, ub.Book.Title, ub.Book.Embedding!))
+            .Select(ub => new RecommendationSource(
+                ub.BookId, ub.Book.Title, ub.Book.Author, ub.Book.Embedding!))
             .ToListAsync(cancellationToken);
 
         return sources;
     }
 
-    public async Task<IReadOnlyList<RecommendationCandidate>> GetNearestAsync(
-        Guid userId, Vector embedding, int limit, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<RatedBook>> GetRatedBooksAsync(
+        Guid userId, CancellationToken cancellationToken)
     {
-        // Cosine distance, which is what the HNSW index was built for (vector_cosine_ops). Using
-        // any other operator here would quietly stop using the index.
-        var rows = await context.Books
+        return await context.UserBooks
+            .AsNoTracking()
+            .Where(ub => ub.UserId == userId
+                && ub.Rating != null
+                && ub.Book.Embedding != null)
+            .Select(ub => new RatedBook(ub.Rating!.Value, ub.Book.Author, ub.Book.Embedding!))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<RecommendationCandidate>> GetNearestAsync(
+        Guid userId,
+        Vector embedding,
+        int limit,
+        string? excludeAuthorPrefix,
+        CancellationToken cancellationToken)
+    {
+        var query = context.Books
             .AsNoTracking()
             .Where(book => book.Embedding != null)
-            .Where(book => !context.UserBooks.Any(ub => ub.UserId == userId && ub.BookId == book.Id))
+            .Where(book => !context.UserBooks.Any(ub => ub.UserId == userId && ub.BookId == book.Id));
+
+        if (!string.IsNullOrWhiteSpace(excludeAuthorPrefix))
+        {
+            // StartsWith rather than equality, because Open Library appends translators and
+            // editors to the author field: "Stephen King" and "Stephen King, José Óscar
+            // Hernández Sendín" are the same writer and both have to go.
+            query = query.Where(book =>
+                book.Author == null || !book.Author.StartsWith(excludeAuthorPrefix));
+        }
+
+        // Cosine distance, which is what the HNSW index was built for (vector_cosine_ops). Using
+        // any other operator here would quietly stop using the index.
+        var rows = await query
             .OrderBy(book => book.Embedding!.CosineDistance(embedding))
             .Take(limit)
             .Select(book => new

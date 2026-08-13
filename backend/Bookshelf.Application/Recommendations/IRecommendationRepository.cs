@@ -8,7 +8,7 @@ namespace Bookshelf.Application.Recommendations;
 /// search and the attribution need: the vector to search with, and the title to say
 /// "because you liked …".
 /// </summary>
-public record RecommendationSource(Guid BookId, string Title, Vector Embedding);
+public record RecommendationSource(Guid BookId, string Title, string? Author, Vector Embedding);
 
 /// <summary>
 /// A book the corpus offers back, together with how close it was to the vector it was found with.
@@ -20,6 +20,9 @@ public record RecommendationSource(Guid BookId, string Title, Vector Embedding);
 /// </para>
 /// </summary>
 public record RecommendationCandidate(Book Book, double Similarity);
+
+/// <summary>A book the reader has rated, as the taste signal needs it.</summary>
+public record RatedBook(int Rating, string? Author, Vector Embedding);
 
 public interface IRecommendationRepository
 {
@@ -38,6 +41,18 @@ public interface IRecommendationRepository
         Guid userId, RecommendationTier tier, int limit, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Every book this reader has given a rating to, with its author and vector.
+    ///
+    /// <para>
+    /// One query for both directions of the taste signal. The service decides what a rating
+    /// means — see <see cref="TasteSignal"/> — because that is policy, and because the two
+    /// directions have to be read together: a reader who rated one Stephen King novel 1 and
+    /// another 5 has said something more complicated than "no more Stephen King".
+    /// </para>
+    /// </summary>
+    Task<IReadOnlyList<RatedBook>> GetRatedBooksAsync(Guid userId, CancellationToken cancellationToken);
+
+    /// <summary>
     /// The <paramref name="limit"/> books closest to <paramref name="embedding"/> that are not
     /// already on this reader's shelf.
     ///
@@ -48,8 +63,17 @@ public interface IRecommendationRepository
     /// they do not own — would never be considered at all.
     /// </para>
     /// </summary>
+    /// <param name="excludeAuthorPrefix">
+    /// When given, books whose author begins with this string are left out. Used to ask the
+    /// second half of the question the recommender actually has: "and what else is like this,
+    /// by somebody else?"
+    /// </param>
     Task<IReadOnlyList<RecommendationCandidate>> GetNearestAsync(
-        Guid userId, Vector embedding, int limit, CancellationToken cancellationToken);
+        Guid userId,
+        Vector embedding,
+        int limit,
+        string? excludeAuthorPrefix,
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// The best-ranked corpus book from <b>every</b> seed topic, skipping anything already on the

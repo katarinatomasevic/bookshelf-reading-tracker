@@ -8,50 +8,67 @@ namespace Bookshelf.Application.Books;
 /// <para>
 /// The reason is the whole reason this class exists as a class. Cosine similarity compares two
 /// vectors, and a sentence transformer builds a vector out of whatever text it is handed. The
-/// ~10K corpus books were embedded by the Python seed script from "title + author + subjects".
-/// If books a reader adds through the application were embedded from anything else — a different
-/// separator, a different subject order, a description appended — the two groups would sit in
-/// measurably different regions of the vector space. Not because the books differ, but because
-/// the inputs did. Similarity would quietly start measuring "how much text was there" instead of
-/// "how alike are these books", and the only symptom would be recommendations that feel slightly
-/// off. That is a bug nobody finds by reading code.
+/// ~15.6K corpus books were embedded by the Python seed script; if books a reader adds through
+/// the application were embedded from anything else — a different separator, a different field,
+/// a different order — the two groups would sit in measurably different regions of the vector
+/// space. Not because the books differ, but because the inputs did. Similarity would quietly
+/// start measuring "how much text was there" instead of "how alike are these books", and the only
+/// symptom would be recommendations that feel slightly off. That is a bug nobody finds by reading
+/// code.
 /// </para>
 ///
 /// <para>
-/// Hence no description, even though <see cref="Domain.Entities.Book.Description"/> usually holds
-/// one and the details page shows it. Subjects carry the signal anyway: for Dune they read
-/// "science fiction, space opera, desert, ecology, politics", which is denser and often more
-/// informative than marketing copy.
+/// <b>No description</b>, even though <see cref="Domain.Entities.Book.Description"/> usually holds
+/// one and the details page shows it: books a reader adds have one and corpus books do not, so
+/// including it would embed the two groups from visibly different text.
 /// </para>
 ///
 /// <para>
-/// Subjects arriving here have already been through <see cref="SubjectFilter"/>, because that
-/// filter runs when a book is written, never when it is read. The Python side applies the same
-/// rules through its own port in <c>embedding/seed/subject_filter.py</c>. Changing either file
-/// means changing all three and re-seeding, since every stored vector was built from this output.
+/// <b>No title either</b>, and that was measured rather than assumed. Titles were included at
+/// first, and over a string this short they dominated everything else: asked for books like
+/// <i>The Secret History</i>, the recommender returned The Secret Adversary, Can You Keep A
+/// Secret?, Two Can Keep a Secret, The Secret Woman, My Secret Life, Toliver's Secret — ten
+/// results out of ten matching on the word "secret" and none on what the books are about. The
+/// model was not wrong; it was answering the question the text asked it.
+/// </para>
+///
+/// <para>
+/// The objection was that titles are what tie a series together — "Dune" finding Children of Dune
+/// and God Emperor of Dune. Tested, and it does not hold: the sequels stay at essentially the
+/// same distance without the title (0.9066 against 0.9208 for the nearest), because they share an
+/// author and the subject "Dune (Imaginary place)". Dropping the title cost nothing there and
+/// fixed the case above.
+/// </para>
+///
+/// <para>
+/// Subjects arriving here have already been through <see cref="SubjectFilter"/>, whose Python twin
+/// applies the same rules on the other side. Changing either file means changing all three and
+/// re-seeding, since every stored vector was built from this output.
 /// </para>
 /// </summary>
 public static class EmbeddingText
 {
     /// <summary>
-    /// Produces "Title. Author. Subject one, subject two." from a book's fields.
+    /// Produces "Author. Subject one, subject two." from a book's fields.
     ///
     /// <para>
     /// Missing parts drop out together with their separator rather than leaving a gap, so a book
-    /// with no author reads "Dune. Science fiction, space opera." and never "Dune. . Science
-    /// fiction" — an empty segment would be text the model has to account for, and the corpus
-    /// never contains one.
+    /// with no author reads "Science fiction, space opera." and never ". Science fiction" — an
+    /// empty segment would be text the model has to account for, and the corpus never contains
+    /// one.
+    /// </para>
+    ///
+    /// <para>
+    /// The title is used only when there is nothing else at all — no author and no subjects —
+    /// which in the current database is true of exactly one book. Embedding an empty string would
+    /// put it at a meaningless point in the vector space and make it a candidate for
+    /// recommendations it has no relationship to; its title is poor information, but it is
+    /// information.
     /// </para>
     /// </summary>
     public static string Build(string title, string? author, string[]? subjects)
     {
         var parts = new List<string>();
-
-        // Python appends the title unconditionally and only filters empties at the join, so a
-        // book with a blank title yields "." there. Matched exactly rather than "improved":
-        // a book without a title should never have been harvested, and quietly diverging here
-        // is precisely the class of difference this port exists to prevent.
-        parts.Add(title.Trim());
 
         if (!string.IsNullOrWhiteSpace(author))
         {
@@ -68,6 +85,11 @@ public static class EmbeddingText
             {
                 parts.Add(joined);
             }
+        }
+
+        if (parts.Count == 0)
+        {
+            parts.Add(title.Trim());
         }
 
         return string.Join(". ", parts.Where(part => part.Length > 0)) + ".";

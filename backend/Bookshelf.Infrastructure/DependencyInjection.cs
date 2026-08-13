@@ -12,6 +12,7 @@ using Bookshelf.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 
 namespace Bookshelf.Infrastructure;
 
@@ -25,7 +26,7 @@ public static class DependencyInjection
         // UseVector() registers the pgvector type mapping with Npgsql; without it EF cannot read
         // or write Book.Embedding at all.
         services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(connectionString, npgsql => npgsql.UseVector()));
+            options.UseNpgsql(WithIterativeIndexScan(connectionString), npgsql => npgsql.UseVector()));
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IBookRepository, BookRepository>();
@@ -64,5 +65,54 @@ public static class DependencyInjection
         });
 
         return services;
+    }
+
+    /// <summary>
+    /// Turns on pgvector's iterative index scan for every connection, and it is not optional.
+    ///
+    /// <para>
+    /// HNSW is an approximate index: it walks its graph, collects roughly
+    /// <c>hnsw.ef_search</c> (40 by default) nearest rows, and hands those to Postgres. Any
+    /// <c>WHERE</c> clause is then applied to <em>that</em> set. When the filter is uncorrelated
+    /// with distance this costs nothing, which is why it went unnoticed — but the recommender
+    /// asks a question where the filter and the distance are almost perfectly correlated:
+    /// "nearest to this Stephen King novel, but not by Stephen King". All forty rows the index
+    /// returns are Stephen King, the filter removes all forty, and the query answers
+    /// <b>zero rows</b> while thousands of matching books sit in the table.
+    /// </para>
+    ///
+    /// <para>
+    /// This was not a hypothetical. It was found by watching a reader with two King novels get
+    /// two recommendations instead of ten, and reproduced down to a single SQL statement that
+    /// returns 0 rows by default and 20 with this setting on.
+    /// </para>
+    ///
+    /// <para>
+    /// <c>strict_order</c> rather than <c>relaxed_order</c>: the index keeps scanning until it
+    /// has enough rows that really do satisfy the filter, and returns them in true distance
+    /// order. The safety net is <c>hnsw.max_scan_tuples</c>, 20000 by default, which is more than
+    /// this corpus holds — so the worst case degrades to an exact scan of every book, measured at
+    /// about 6 ms. That is the same trade the decisions document already states plainly: over
+    /// ~15K rows the index is here because pgvector is part of the coursework, not because the
+    /// data needs it.
+    /// </para>
+    ///
+    /// <para>
+    /// Set through the connection string rather than with a <c>SET</c> statement per query,
+    /// because Npgsql pools connections: a session setting has to be applied when the connection
+    /// is opened, or it applies to whichever queries happen to land on that pooled connection.
+    /// </para>
+    /// </summary>
+    private static string WithIterativeIndexScan(string connectionString)
+    {
+        const string setting = "-c hnsw.iterative_scan=strict_order";
+
+        var builder = new NpgsqlConnectionStringBuilder(connectionString);
+
+        builder.Options = string.IsNullOrWhiteSpace(builder.Options)
+            ? setting
+            : $"{builder.Options} {setting}";
+
+        return builder.ConnectionString;
     }
 }
