@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { AuthService } from './core/services/auth.service';
@@ -7,7 +7,7 @@ import { SessionExpiredModal } from './core/components/session-expired-modal/ses
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, MenuModule, SessionExpiredModal],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, MenuModule, SessionExpiredModal],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

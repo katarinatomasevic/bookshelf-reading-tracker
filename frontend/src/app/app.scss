@@ -1,23 +1,86 @@
+/*
+ * The header is the one piece of chrome on every page, so it is styled entirely from PrimeNG's
+ * semantic tokens rather than from colours of its own. Those tokens already know about the light
+ * and dark theme, which matters here more than anywhere else: a hard-coded white link would read
+ * perfectly on a dark background and be invisible on a light one, and the Aura preset follows the
+ * operating system's setting rather than a switch inside the app.
+ */
+
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
+  flex-wrap: wrap;
+  gap: var(--app-space-2);
+  padding: var(--app-space-2) var(--app-space-3);
   border-bottom: 1px solid var(--p-content-border-color, rgba(128, 128, 128, 0.3));
 }
 
 .app-header__brand {
   font-weight: 700;
-  font-size: 1.25rem;
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
   text-decoration: none;
-  color: inherit;
+  color: var(--p-text-color, inherit);
+  border-radius: var(--p-border-radius-md, 6px);
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary-color, currentColor);
+    outline-offset: 4px;
+  }
 }
 
 .app-header__nav {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: var(--app-space-1);
+}
+
+/*
+ * The links used to carry no styling at all, which left them at the browser default: blue and
+ * underlined, next to a profile button that was already themed. They are now blocks rather than
+ * bare text — the whole padded area reacts, so the target is the size it looks, and the row reads
+ * as one set of controls.
+ */
+.app-header__nav a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--p-border-radius-md, 6px);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+
+  /* Muted until pointed at, so the page's own content stays the loudest thing on screen. */
+  color: var(--p-text-muted-color, inherit);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background: var(--p-content-hover-background, rgba(128, 128, 128, 0.12));
+    color: var(--p-text-color, inherit);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary-color, currentColor);
+    outline-offset: 2px;
+  }
+
+  /*
+   * The page you are on. These are PrimeNG's own "selected item" tokens — the same pair the
+   * profile dropdown uses for its highlighted row — so the header agrees with the menu that opens
+   * underneath it instead of inventing a second idea of what "selected" looks like. They are also
+   * a matched foreground/background pair, which is what keeps the text legible whichever way the
+   * theme goes.
+   */
+  &.is-active {
+    background: var(--p-highlight-background, rgba(128, 128, 128, 0.16));
+    color: var(--p-highlight-color, inherit);
+    font-weight: 600;
+  }
 }
 
 .app-header__user {
@@ -25,26 +88,46 @@
 }
 
 /* Trigger for the profile dropdown: reads as a label with an icon, not as a
-   form button, so it sits naturally among the header's navigation links. */
+   form button, so it sits naturally among the header's navigation links. Padding and radius are
+   deliberately the same as the links beside it, so the row lines up. */
 .app-header__profile {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.3rem 0.5rem;
+  gap: var(--app-space-1);
+  padding: 0.45rem 0.85rem;
   background: none;
   border: none;
   border-radius: var(--p-border-radius-md, 6px);
   font: inherit;
-  color: inherit;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--p-text-muted-color, inherit);
   cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 
-  &:hover,
-  &:focus-visible {
+  &:hover {
     background: var(--p-content-hover-background, rgba(128, 128, 128, 0.12));
+    color: var(--p-text-color, inherit);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--p-primary-color, currentColor);
+    outline-offset: 2px;
   }
 }
 
 .app-header__profile-caret {
   font-size: 0.75rem;
   opacity: 0.7;
+}
+
+/* Someone who has asked their system to reduce motion gets the colour change without the fade. */
+@media (prefers-reduced-motion: reduce) {
+  .app-header__nav a,
+  .app-header__profile {
+    transition: none;
+  }
 }
