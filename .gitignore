@@ -145,8 +145,9 @@ vite.config.ts.timestamp-*
 # Project working documents (decisions, implementation plan, phase reports)
 docs/
 
-# Seed corpus (generated locally, see Faza 8)
-corpus.json
+# corpus.json is deliberately NOT ignored. It is the harvested seed corpus (see Faza 8) and it is
+# committed so that a fresh clone can fill the database in two minutes without repeating the
+# 20-40 minute Open Library harvest. Roughly 8MB raw, a couple of megabytes once git compresses it.
 
 # .NET
 backend/**/bin/
