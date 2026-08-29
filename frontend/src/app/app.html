@@ -2,11 +2,21 @@
   <a routerLink="/" class="app-header__brand">Bookshelf</a>
 
   <nav class="app-header__nav" data-testid="nav">
-    <a routerLink="/" data-testid="nav-home">Home</a>
+    <!-- Home matches exactly: "/" is a prefix of every other route, so without this it would
+         stay marked as the current page everywhere in the app. -->
+    <a
+      routerLink="/"
+      routerLinkActive="is-active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      data-testid="nav-home"
+      >Home</a
+    >
 
     @if (authService.isLoggedIn()) {
-      <a routerLink="/shelf" data-testid="nav-shelf">My shelf</a>
-      <a routerLink="/dashboard" data-testid="nav-dashboard">Dashboard</a>
+      <a routerLink="/shelf" routerLinkActive="is-active" data-testid="nav-shelf">My shelf</a>
+      <a routerLink="/dashboard" routerLinkActive="is-active" data-testid="nav-dashboard"
+        >Dashboard</a
+      >
 
       <button
         type="button"
@@ -24,8 +34,8 @@
       </button>
       <p-menu #profileMenu [model]="profileMenuItems" [popup]="true" />
     } @else {
-      <a routerLink="/login" data-testid="nav-login">Log in</a>
-      <a routerLink="/register" data-testid="nav-register">Register</a>
+      <a routerLink="/login" routerLinkActive="is-active" data-testid="nav-login">Log in</a>
+      <a routerLink="/register" routerLinkActive="is-active" data-testid="nav-register">Register</a>
     }
   </nav>
 </header>
